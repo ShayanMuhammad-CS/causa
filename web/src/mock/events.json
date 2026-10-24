@@ -1,0 +1,888 @@
+{
+ "_MOCK": "MOCK DATA. Hand-written sample, not a real recording. Numbers are illustrative.",
+ "events": [
+  {
+   "t": 300,
+   "event": {
+    "type": "contract",
+    "contract": {
+     "id": "ctr-7f3a91",
+     "issuedAt": "2026-10-24T09:14:02Z",
+     "intent": {
+      "intent": "explain_metric_change",
+      "entities": [
+       "Target",
+       "Walmart"
+      ],
+      "metrics": [
+       "revenue growth"
+      ],
+      "timeRange": "FY2022-FY2024",
+      "risk": "low",
+      "riskReasons": [
+       "read-only analytics question",
+       "no personal data referenced"
+      ]
+     },
+     "allowedTools": [
+      "zetaris.catalog",
+      "zetaris.query (SELECT only)",
+      "memory.recall",
+      "memory.remember"
+     ],
+     "budget": {
+      "maxQueries": 8,
+      "maxLlmCalls": 14,
+      "maxSeconds": 120
+     },
+     "stopConditions": [
+      "all hypotheses resolved",
+      "budget exhausted",
+      "critic rejects all claims"
+     ],
+     "signature": "hmac-sha256:9c41e07ab3d25f1e88c0a6174d2be93f50a7c61d"
+    }
+   }
+  },
+  {
+   "t": 1200,
+   "event": {
+    "type": "recall",
+    "hits": [
+     {
+      "id": "mem-34",
+      "text": "Walmart FY2023 revenue growth (6.7%) was driven mainly by grocery and Sam's Club fuel pricing.",
+      "score": 0.88,
+      "provenance": {
+       "source": "investigation #12, SQL q-34",
+       "confidence": 0.82,
+       "derivedFrom": [
+        "ev-2"
+       ]
+      }
+     },
+     {
+      "id": "mem-51",
+      "text": "Target discretionary categories (home, apparel) declined in 2022-2023 while food and beverage grew.",
+      "score": 0.79,
+      "provenance": {
+       "source": "investigation #19, SQL q-77",
+       "confidence": 0.74,
+       "derivedFrom": [
+        "ev-5"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "t": 2300,
+   "event": {
+    "type": "thinking",
+    "text": "Reading Zetaris catalog: sic_edgar_usl, SEC_DATA.edgar, MACRO.cpi_rest, company_dns.sic. Proposing three competing hypotheses."
+   }
+  },
+  {
+   "t": 2800,
+   "event": {
+    "type": "hypothesis",
+    "hypothesis": {
+     "id": "h-1",
+     "statement": "Target's mix skews to discretionary goods, which fell as consumers shifted spend to groceries.",
+     "status": "open",
+     "evidenceIds": []
+    }
+   }
+  },
+  {
+   "t": 3300,
+   "event": {
+    "type": "hypothesis",
+    "hypothesis": {
+     "id": "h-2",
+     "statement": "Walmart grew faster mainly through price inflation, not volume.",
+     "status": "open",
+     "evidenceIds": []
+    }
+   }
+  },
+  {
+   "t": 3800,
+   "event": {
+    "type": "hypothesis",
+    "hypothesis": {
+     "id": "h-3",
+     "statement": "The gap is sector-wide: both firms share the same retail SIC peers and macro conditions.",
+     "status": "open",
+     "evidenceIds": []
+    }
+   }
+  },
+  {
+   "t": 4700,
+   "event": {
+    "type": "query_started",
+    "hypothesisId": "h-3",
+    "sql": "SELECT company, fiscal_year, revenue_usd_m FROM sic_edgar_usl.retail_revenue\nWHERE company IN ('TARGET CORP','WALMART INC') AND fiscal_year BETWEEN 2021 AND 2024\nORDER BY company, fiscal_year",
+    "purpose": "Measure annual revenue for both firms to establish the growth gap."
+   }
+  },
+  {
+   "t": 6100,
+   "event": {
+    "type": "evidence",
+    "evidence": {
+     "id": "ev-1",
+     "hypothesisId": "h-3",
+     "purpose": "Measure annual revenue for both firms to establish the growth gap.",
+     "result": {
+      "queryId": "q-101",
+      "sql": "SELECT company, fiscal_year, revenue_usd_m FROM sic_edgar_usl.retail_revenue\nWHERE company IN ('TARGET CORP','WALMART INC') AND fiscal_year BETWEEN 2021 AND 2024\nORDER BY company, fiscal_year",
+      "columns": [
+       "company",
+       "fiscal_year",
+       "revenue_usd_m"
+      ],
+      "rows": [
+       [
+        "TARGET CORP",
+        2021,
+        106005
+       ],
+       [
+        "TARGET CORP",
+        2022,
+        109120
+       ],
+       [
+        "TARGET CORP",
+        2023,
+        107412
+       ],
+       [
+        "TARGET CORP",
+        2024,
+        106566
+       ],
+       [
+        "WALMART INC",
+        2021,
+        559151
+       ],
+       [
+        "WALMART INC",
+        2022,
+        572754
+       ],
+       [
+        "WALMART INC",
+        2023,
+        611289
+       ],
+       [
+        "WALMART INC",
+        2024,
+        648125
+       ]
+      ],
+      "rowCount": 8,
+      "elapsedMs": 842,
+      "source": [
+       "SEC_DATA.edgar.target_revenue_facts",
+       "SEC_DATA.edgar.walmart_revenue_facts"
+      ]
+     },
+     "summary": "Walmart revenue rose 13.2% FY2022-FY2024 ($572.8B to $648.1B); Target fell 2.3% ($109.1B to $106.6B) after peaking in FY2022."
+    }
+   }
+  },
+  {
+   "t": 6800,
+   "event": {
+    "type": "query_started",
+    "hypothesisId": "h-1",
+    "sql": "SELECT category, SUM(net_sales) FROM sic_edgar_usl.target_segments GROUP BY category",
+    "purpose": "Compare Target category sales (discretionary vs. essentials) FY2022 to FY2024."
+   }
+  },
+  {
+   "t": 7800,
+   "event": {
+    "type": "query_failed",
+    "hypothesisId": "h-1",
+    "sql": "SELECT category, SUM(net_sales) FROM sic_edgar_usl.target_segments GROUP BY category",
+    "attempt": 1,
+    "error": "Table or view not found: sic_edgar_usl.target_segments (did you mean SEC_DATA.edgar.target_segment_facts?)"
+   }
+  },
+  {
+   "t": 9000,
+   "event": {
+    "type": "thinking",
+    "text": "Query failed: table not found. Re-reading catalog, switching to SEC_DATA.edgar.target_segment_facts."
+   }
+  },
+  {
+   "t": 9600,
+   "event": {
+    "type": "query_started",
+    "hypothesisId": "h-1",
+    "sql": "SELECT segment, fiscal_year, sales_usd_m\nFROM SEC_DATA.edgar.target_segment_facts\nWHERE fiscal_year IN (2022, 2024)\nORDER BY segment, fiscal_year",
+    "purpose": "Compare Target category sales (discretionary vs. essentials) FY2022 to FY2024."
+   }
+  },
+  {
+   "t": 11100,
+   "event": {
+    "type": "evidence",
+    "evidence": {
+     "id": "ev-2",
+     "hypothesisId": "h-1",
+     "purpose": "Compare Target category sales (discretionary vs. essentials) FY2022 to FY2024.",
+     "result": {
+      "queryId": "q-102",
+      "sql": "SELECT segment, fiscal_year, sales_usd_m\nFROM SEC_DATA.edgar.target_segment_facts\nWHERE fiscal_year IN (2022, 2024)\nORDER BY segment, fiscal_year",
+      "columns": [
+       "segment",
+       "fiscal_year",
+       "sales_usd_m"
+      ],
+      "rows": [
+       [
+        "Apparel & accessories",
+        2022,
+        18890
+       ],
+       [
+        "Apparel & accessories",
+        2024,
+        17110
+       ],
+       [
+        "Home furnishings",
+        2022,
+        18640
+       ],
+       [
+        "Home furnishings",
+        2024,
+        15980
+       ],
+       [
+        "Hardlines",
+        2022,
+        17180
+       ],
+       [
+        "Hardlines",
+        2024,
+        16240
+       ],
+       [
+        "Food & beverage",
+        2022,
+        24390
+       ],
+       [
+        "Food & beverage",
+        2024,
+        25870
+       ]
+      ],
+      "rowCount": 8,
+      "elapsedMs": 1210,
+      "source": [
+       "SEC_DATA.edgar.target_segment_facts"
+      ]
+     },
+     "summary": "Discretionary segments fell $4.0B in total (apparel -9.4%, home -14.3%, hardlines -5.5%); food and beverage rose 6.1%."
+    }
+   }
+  },
+  {
+   "t": 11600,
+   "event": {
+    "type": "verdict",
+    "hypothesis": {
+     "id": "h-1",
+     "statement": "Target's mix skews to discretionary goods, which fell as consumers shifted spend to groceries.",
+     "status": "supported",
+     "evidenceIds": [
+      "ev-2"
+     ]
+    }
+   }
+  },
+  {
+   "t": 12500,
+   "event": {
+    "type": "query_started",
+    "hypothesisId": "h-2",
+    "sql": "SELECT year, cpi_food_at_home, cpi_all_items\nFROM MACRO.cpi_rest.cpi_series\nWHERE year BETWEEN 2021 AND 2024",
+    "purpose": "Check whether food price inflation can explain Walmart's growth."
+   }
+  },
+  {
+   "t": 13500,
+   "event": {
+    "type": "evidence",
+    "evidence": {
+     "id": "ev-3",
+     "hypothesisId": "h-2",
+     "purpose": "Check whether food price inflation can explain Walmart's growth.",
+     "result": {
+      "queryId": "q-103",
+      "sql": "SELECT year, cpi_food_at_home, cpi_all_items\nFROM MACRO.cpi_rest.cpi_series\nWHERE year BETWEEN 2021 AND 2024",
+      "columns": [
+       "year",
+       "cpi_food_at_home",
+       "cpi_all_items"
+      ],
+      "rows": [
+       [
+        2021,
+        3.5,
+        4.7
+       ],
+       [
+        2022,
+        11.4,
+        8
+       ],
+       [
+        2023,
+        5,
+        4.1
+       ],
+       [
+        2024,
+        1.2,
+        2.9
+       ]
+      ],
+      "rowCount": 4,
+      "elapsedMs": 397,
+      "source": [
+       "MACRO.cpi_rest.cpi_series"
+      ]
+     },
+     "summary": "Food-at-home CPI ran 11.4% in 2022 and 5.0% in 2023, above all-items inflation in both years."
+    }
+   }
+  },
+  {
+   "t": 14000,
+   "event": {
+    "type": "verdict",
+    "hypothesis": {
+     "id": "h-2",
+     "statement": "Walmart grew faster mainly through price inflation, not volume.",
+     "status": "inconclusive",
+     "evidenceIds": [
+      "ev-3"
+     ]
+    }
+   }
+  },
+  {
+   "t": 14800,
+   "event": {
+    "type": "query_started",
+    "hypothesisId": "h-3",
+    "sql": "SELECT c.company, s.sic_code, s.industry_title, r.fiscal_year, r.revenue_usd_m\nFROM company_dns.sic.company_sic s\nJOIN sic_edgar_usl.retail_revenue r ON r.company = s.company\nWHERE s.sic_code = '5331' AND r.fiscal_year IN (2022, 2024)",
+    "purpose": "Compare against SIC 5331 (variety stores) peers to test the sector-wide explanation."
+   }
+  },
+  {
+   "t": 16500,
+   "event": {
+    "type": "evidence",
+    "evidence": {
+     "id": "ev-4",
+     "hypothesisId": "h-3",
+     "purpose": "Compare against SIC 5331 (variety stores) peers to test the sector-wide explanation.",
+     "result": {
+      "queryId": "q-104",
+      "sql": "SELECT c.company, s.sic_code, s.industry_title, r.fiscal_year, r.revenue_usd_m\nFROM company_dns.sic.company_sic s\nJOIN sic_edgar_usl.retail_revenue r ON r.company = s.company\nWHERE s.sic_code = '5331' AND r.fiscal_year IN (2022, 2024)",
+      "columns": [
+       "company",
+       "sic_code",
+       "industry_title",
+       "fiscal_year",
+       "revenue_usd_m"
+      ],
+      "rows": [
+       [
+        "DOLLAR GENERAL CORP",
+        "5331",
+        "Variety Stores",
+        2022,
+        37845
+       ],
+       [
+        "DOLLAR GENERAL CORP",
+        "5331",
+        "Variety Stores",
+        2024,
+        40612
+       ],
+       [
+        "COSTCO WHOLESALE CORP",
+        "5331",
+        "Variety Stores",
+        2022,
+        226954
+       ],
+       [
+        "COSTCO WHOLESALE CORP",
+        "5331",
+        "Variety Stores",
+        2024,
+        254453
+       ]
+      ],
+      "rowCount": 4,
+      "elapsedMs": 1633,
+      "source": [
+       "company_dns.sic.company_sic",
+       "SEC_DATA.edgar.retail_revenue_facts"
+      ]
+     },
+     "summary": "Variety-store peers grew 7.3% (Dollar General) and 12.1% (Costco) over the same period, so Target's decline is not sector-wide."
+    }
+   }
+  },
+  {
+   "t": 17000,
+   "event": {
+    "type": "verdict",
+    "hypothesis": {
+     "id": "h-3",
+     "statement": "The gap is sector-wide: both firms share the same retail SIC peers and macro conditions.",
+     "status": "refuted",
+     "evidenceIds": [
+      "ev-1",
+      "ev-4"
+     ]
+    }
+   }
+  },
+  {
+   "t": 18200,
+   "event": {
+    "type": "thinking",
+    "text": "Critic pass: checking every number in each claim against its cited rows."
+   }
+  },
+  {
+   "t": 20000,
+   "event": {
+    "type": "answer",
+    "answer": {
+     "summary": "Target's growth lagged Walmart's mainly because Target is exposed to discretionary categories that shrank, while Walmart's grocery base held up. Peer data shows this is a company-specific gap.",
+     "claims": [
+      {
+       "text": "Target's discretionary mix is the main driver: apparel, home and hardlines sales fell $4.0B (FY2022 to FY2024) while Walmart's grocery-heavy mix kept growing.",
+       "confidence": "high",
+       "evidenceIds": [
+        "ev-2",
+        "ev-1"
+       ],
+       "verified": true
+      },
+      {
+       "text": "The lag is company-specific, not sector-wide: variety-store peers grew 7-12% over the same period while Target shrank 2.3%.",
+       "confidence": "high",
+       "evidenceIds": [
+        "ev-4",
+        "ev-1"
+       ],
+       "verified": true
+      },
+      {
+       "text": "Food inflation inflated Walmart's top line (food-at-home CPI +11.4% in 2022), but it explains only part of the 13.2% gap.",
+       "confidence": "medium",
+       "evidenceIds": [
+        "ev-3"
+       ],
+       "verified": false,
+       "criticNote": "Downgraded from high: CPI is a national series and the evidence has no Walmart grocery sales to quantify the effect."
+      }
+     ]
+    }
+   }
+  },
+  {
+   "t": 20700,
+   "event": {
+    "type": "remembered",
+    "ids": [
+     "mem-90",
+     "mem-91"
+    ]
+   }
+  },
+  {
+   "t": 21000,
+   "event": {
+    "type": "done",
+    "investigation": {
+     "id": "inv-demo",
+     "question": "Why did Target's revenue growth lag Walmart's from FY2022 to FY2024?",
+     "contract": {
+      "id": "ctr-7f3a91",
+      "issuedAt": "2026-10-24T09:14:02Z",
+      "intent": {
+       "intent": "explain_metric_change",
+       "entities": [
+        "Target",
+        "Walmart"
+       ],
+       "metrics": [
+        "revenue growth"
+       ],
+       "timeRange": "FY2022-FY2024",
+       "risk": "low",
+       "riskReasons": [
+        "read-only analytics question",
+        "no personal data referenced"
+       ]
+      },
+      "allowedTools": [
+       "zetaris.catalog",
+       "zetaris.query (SELECT only)",
+       "memory.recall",
+       "memory.remember"
+      ],
+      "budget": {
+       "maxQueries": 8,
+       "maxLlmCalls": 14,
+       "maxSeconds": 120
+      },
+      "stopConditions": [
+       "all hypotheses resolved",
+       "budget exhausted",
+       "critic rejects all claims"
+      ],
+      "signature": "hmac-sha256:9c41e07ab3d25f1e88c0a6174d2be93f50a7c61d"
+     },
+     "recalled": [
+      {
+       "id": "mem-34",
+       "text": "Walmart FY2023 revenue growth (6.7%) was driven mainly by grocery and Sam's Club fuel pricing.",
+       "score": 0.88,
+       "provenance": {
+        "source": "investigation #12, SQL q-34",
+        "confidence": 0.82,
+        "derivedFrom": [
+         "ev-2"
+        ]
+       }
+      },
+      {
+       "id": "mem-51",
+       "text": "Target discretionary categories (home, apparel) declined in 2022-2023 while food and beverage grew.",
+       "score": 0.79,
+       "provenance": {
+        "source": "investigation #19, SQL q-77",
+        "confidence": 0.74,
+        "derivedFrom": [
+         "ev-5"
+        ]
+       }
+      }
+     ],
+     "hypotheses": [
+      {
+       "id": "h-1",
+       "statement": "Target's mix skews to discretionary goods, which fell as consumers shifted spend to groceries.",
+       "status": "supported",
+       "evidenceIds": [
+        "ev-2"
+       ]
+      },
+      {
+       "id": "h-2",
+       "statement": "Walmart grew faster mainly through price inflation, not volume.",
+       "status": "inconclusive",
+       "evidenceIds": [
+        "ev-3"
+       ]
+      },
+      {
+       "id": "h-3",
+       "statement": "The gap is sector-wide: both firms share the same retail SIC peers and macro conditions.",
+       "status": "refuted",
+       "evidenceIds": [
+        "ev-1",
+        "ev-4"
+       ]
+      }
+     ],
+     "evidence": [
+      {
+       "id": "ev-1",
+       "hypothesisId": "h-3",
+       "purpose": "Measure annual revenue for both firms to establish the growth gap.",
+       "result": {
+        "queryId": "q-101",
+        "sql": "SELECT company, fiscal_year, revenue_usd_m FROM sic_edgar_usl.retail_revenue\nWHERE company IN ('TARGET CORP','WALMART INC') AND fiscal_year BETWEEN 2021 AND 2024\nORDER BY company, fiscal_year",
+        "columns": [
+         "company",
+         "fiscal_year",
+         "revenue_usd_m"
+        ],
+        "rows": [
+         [
+          "TARGET CORP",
+          2021,
+          106005
+         ],
+         [
+          "TARGET CORP",
+          2022,
+          109120
+         ],
+         [
+          "TARGET CORP",
+          2023,
+          107412
+         ],
+         [
+          "TARGET CORP",
+          2024,
+          106566
+         ],
+         [
+          "WALMART INC",
+          2021,
+          559151
+         ],
+         [
+          "WALMART INC",
+          2022,
+          572754
+         ],
+         [
+          "WALMART INC",
+          2023,
+          611289
+         ],
+         [
+          "WALMART INC",
+          2024,
+          648125
+         ]
+        ],
+        "rowCount": 8,
+        "elapsedMs": 842,
+        "source": [
+         "SEC_DATA.edgar.target_revenue_facts",
+         "SEC_DATA.edgar.walmart_revenue_facts"
+        ]
+       },
+       "summary": "Walmart revenue rose 13.2% FY2022-FY2024 ($572.8B to $648.1B); Target fell 2.3% ($109.1B to $106.6B) after peaking in FY2022."
+      },
+      {
+       "id": "ev-2",
+       "hypothesisId": "h-1",
+       "purpose": "Compare Target category sales (discretionary vs. essentials) FY2022 to FY2024.",
+       "result": {
+        "queryId": "q-102",
+        "sql": "SELECT segment, fiscal_year, sales_usd_m\nFROM SEC_DATA.edgar.target_segment_facts\nWHERE fiscal_year IN (2022, 2024)\nORDER BY segment, fiscal_year",
+        "columns": [
+         "segment",
+         "fiscal_year",
+         "sales_usd_m"
+        ],
+        "rows": [
+         [
+          "Apparel & accessories",
+          2022,
+          18890
+         ],
+         [
+          "Apparel & accessories",
+          2024,
+          17110
+         ],
+         [
+          "Home furnishings",
+          2022,
+          18640
+         ],
+         [
+          "Home furnishings",
+          2024,
+          15980
+         ],
+         [
+          "Hardlines",
+          2022,
+          17180
+         ],
+         [
+          "Hardlines",
+          2024,
+          16240
+         ],
+         [
+          "Food & beverage",
+          2022,
+          24390
+         ],
+         [
+          "Food & beverage",
+          2024,
+          25870
+         ]
+        ],
+        "rowCount": 8,
+        "elapsedMs": 1210,
+        "source": [
+         "SEC_DATA.edgar.target_segment_facts"
+        ]
+       },
+       "summary": "Discretionary segments fell $4.0B in total (apparel -9.4%, home -14.3%, hardlines -5.5%); food and beverage rose 6.1%."
+      },
+      {
+       "id": "ev-3",
+       "hypothesisId": "h-2",
+       "purpose": "Check whether food price inflation can explain Walmart's growth.",
+       "result": {
+        "queryId": "q-103",
+        "sql": "SELECT year, cpi_food_at_home, cpi_all_items\nFROM MACRO.cpi_rest.cpi_series\nWHERE year BETWEEN 2021 AND 2024",
+        "columns": [
+         "year",
+         "cpi_food_at_home",
+         "cpi_all_items"
+        ],
+        "rows": [
+         [
+          2021,
+          3.5,
+          4.7
+         ],
+         [
+          2022,
+          11.4,
+          8
+         ],
+         [
+          2023,
+          5,
+          4.1
+         ],
+         [
+          2024,
+          1.2,
+          2.9
+         ]
+        ],
+        "rowCount": 4,
+        "elapsedMs": 397,
+        "source": [
+         "MACRO.cpi_rest.cpi_series"
+        ]
+       },
+       "summary": "Food-at-home CPI ran 11.4% in 2022 and 5.0% in 2023, above all-items inflation in both years."
+      },
+      {
+       "id": "ev-4",
+       "hypothesisId": "h-3",
+       "purpose": "Compare against SIC 5331 (variety stores) peers to test the sector-wide explanation.",
+       "result": {
+        "queryId": "q-104",
+        "sql": "SELECT c.company, s.sic_code, s.industry_title, r.fiscal_year, r.revenue_usd_m\nFROM company_dns.sic.company_sic s\nJOIN sic_edgar_usl.retail_revenue r ON r.company = s.company\nWHERE s.sic_code = '5331' AND r.fiscal_year IN (2022, 2024)",
+        "columns": [
+         "company",
+         "sic_code",
+         "industry_title",
+         "fiscal_year",
+         "revenue_usd_m"
+        ],
+        "rows": [
+         [
+          "DOLLAR GENERAL CORP",
+          "5331",
+          "Variety Stores",
+          2022,
+          37845
+         ],
+         [
+          "DOLLAR GENERAL CORP",
+          "5331",
+          "Variety Stores",
+          2024,
+          40612
+         ],
+         [
+          "COSTCO WHOLESALE CORP",
+          "5331",
+          "Variety Stores",
+          2022,
+          226954
+         ],
+         [
+          "COSTCO WHOLESALE CORP",
+          "5331",
+          "Variety Stores",
+          2024,
+          254453
+         ]
+        ],
+        "rowCount": 4,
+        "elapsedMs": 1633,
+        "source": [
+         "company_dns.sic.company_sic",
+         "SEC_DATA.edgar.retail_revenue_facts"
+        ]
+       },
+       "summary": "Variety-store peers grew 7.3% (Dollar General) and 12.1% (Costco) over the same period, so Target's decline is not sector-wide."
+      }
+     ],
+     "answer": {
+      "summary": "Target's growth lagged Walmart's mainly because Target is exposed to discretionary categories that shrank, while Walmart's grocery base held up. Peer data shows this is a company-specific gap.",
+      "claims": [
+       {
+        "text": "Target's discretionary mix is the main driver: apparel, home and hardlines sales fell $4.0B (FY2022 to FY2024) while Walmart's grocery-heavy mix kept growing.",
+        "confidence": "high",
+        "evidenceIds": [
+         "ev-2",
+         "ev-1"
+        ],
+        "verified": true
+       },
+       {
+        "text": "The lag is company-specific, not sector-wide: variety-store peers grew 7-12% over the same period while Target shrank 2.3%.",
+        "confidence": "high",
+        "evidenceIds": [
+         "ev-4",
+         "ev-1"
+        ],
+        "verified": true
+       },
+       {
+        "text": "Food inflation inflated Walmart's top line (food-at-home CPI +11.4% in 2022), but it explains only part of the 13.2% gap.",
+        "confidence": "medium",
+        "evidenceIds": [
+         "ev-3"
+        ],
+        "verified": false,
+        "criticNote": "Downgraded from high: CPI is a national series and the evidence has no Walmart grocery sales to quantify the effect."
+       }
+      ]
+     },
+     "rememberedIds": [
+      "mem-90",
+      "mem-91"
+     ],
+     "status": "done",
+     "startedAt": "2026-10-24T09:14:02Z",
+     "finishedAt": "2026-10-24T09:14:41Z"
+    }
+   }
+  }
+ ]
+}
