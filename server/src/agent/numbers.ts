@@ -26,6 +26,7 @@ const NUM_RE =
 export function extractClaimNumbers(text: string): ClaimNumber[] {
   const cleaned = text
     .replace(/\[[^\]]*\]/g, ' ')                       // citation chips [ev-1, ev-2]
+    .replace(/(?:19|20)\d\d-\d\d-\d\d/g, ' ')        // ISO dates (period ends) are context, not claims
     .replace(/\b(?:ev|h|q|m|inv|c)-[\w-]+/gi, ' ')     // ids
     .replace(/\b(?:FY|CY|Q|H)\s?'?\d{1,4}\b/gi, ' ')   // FY2022, Q3, H1
     .replace(/\b(?:SIC|NAICS)\s*(?:code\s*)?\d+/gi, ' ');

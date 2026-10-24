@@ -1,0 +1,556 @@
+{
+  "id": "inv-6",
+  "question": "Is Ford's revenue slowdown company-specific or sector-wide?",
+  "contract": {
+    "id": "b4172f78-4477-4768-bc4c-04212c50b3f8",
+    "intent": {
+      "intent": "explain_metric_change",
+      "entities": [
+        "Ford"
+      ],
+      "metrics": [
+        "revenue"
+      ],
+      "risk": "low",
+      "riskReasons": []
+    },
+    "allowedTools": [
+      "zetaris.catalog",
+      "zetaris.query",
+      "memory.recall",
+      "memory.remember"
+    ],
+    "budget": {
+      "maxQueries": 14,
+      "maxLlmCalls": 28,
+      "maxSeconds": 300
+    },
+    "stopConditions": [
+      "stop when every hypothesis is supported, refuted or inconclusive",
+      "stop when the query, LLM-call or time budget is exhausted",
+      "stop and fail on any statement that is not a single SELECT, SHOW, DESCRIBE or WITH",
+      "stop on any tool call outside allowedTools"
+    ],
+    "issuedAt": "2026-10-24T15:17:27.965Z",
+    "signature": "3d52b32df2feecc5102e359c39a9438a4254fc5769254d219c979e66c8998ea9"
+  },
+  "recalled": [
+    {
+      "id": "mem-2",
+      "text": "Company-specific: over fiscal_year 2023, 2024 Target (TGT) grew -1.57% and -0.79% YoY while its SIC 5331 peers grew faster: WMT 6.03% and 5.07%; COST 6.76% and 5.02%; DG 2.24% and 4.96% [ev-1].",
+      "score": 0.22993644092436274,
+      "provenance": {
+        "source": "causa:investigation/inv-5",
+        "confidence": 0.9,
+        "derivedFrom": [
+          "inv-5/ev-1",
+          "zetaris:query/80f4ea1f-680b-4684-8d9a-f039233de587"
+        ]
+      }
+    },
+    {
+      "id": "mem-4",
+      "text": "Not sector-wide: Target (TGT)'s SIC 5331 peers excluding TGT grew 6.05% (fiscal_year 2023), 5.05% (fiscal_year 2024) in aggregate, versus TGT's -1.57% (fiscal_year 2023), -0.79% (fiscal_year 2024), a gap of 5.84 percentage points in fiscal_year 2024 [ev-2].",
+      "score": 0.205459481882879,
+      "provenance": {
+        "source": "causa:investigation/inv-5",
+        "confidence": 0.7,
+        "derivedFrom": [
+          "inv-5/ev-2",
+          "zetaris:query/9e2d4fd8-1c6c-46a3-9386-9ea9837f914c"
+        ]
+      }
+    },
+    {
+      "id": "mem-1",
+      "text": "Target (TGT) revenue went from $109.12B (FY ending 2023-01-28) to $106.57B (FY ending 2025-02-01), a -2.3% change; YoY growth was -1.57% (FY ending 2024-02-03), -0.79% (FY ending 2025-02-01) [ev-1].",
+      "score": 0.17645452893669136,
+      "provenance": {
+        "source": "causa:investigation/inv-5",
+        "confidence": 0.9,
+        "derivedFrom": [
+          "inv-5/ev-1",
+          "zetaris:query/80f4ea1f-680b-4684-8d9a-f039233de587"
+        ]
+      }
+    },
+    {
+      "id": "mem-5",
+      "text": "Not macro: US real private consumption grew 2.57% in 2023, 2.95% in 2024 while CPI inflation was 4.12% in 2023, 2.95% in 2024, so consumer demand was still expanding in real terms [ev-3].",
+      "score": 0.1461595402764019,
+      "provenance": {
+        "source": "causa:investigation/inv-5",
+        "confidence": 0.7,
+        "derivedFrom": [
+          "inv-5/ev-3",
+          "zetaris:query/46845620-69ff-461a-9524-4c572299a95d"
+        ]
+      }
+    },
+    {
+      "id": "mem-3",
+      "text": "Margin trade-off: Target (TGT)'s operating margin rose from 3.53% (FY ending 2023-01-28) to 5.22% (FY ending 2025-02-01) while its revenue growth lagged, consistent with prioritising profitability over sales [ev-4].",
+      "score": 0.13678377102336944,
+      "provenance": {
+        "source": "causa:investigation/inv-5",
+        "confidence": 0.7,
+        "derivedFrom": [
+          "inv-5/ev-4",
+          "zetaris:query/d05fd8e2-eb32-4ac8-aa18-8434f45938a7"
+        ]
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "h-1",
+      "statement": "Company-specific: Ford Motor's revenue growth fell short of its SIC 3711 peers over the latest four fiscal years in the data — refuted if Ford Motor's mean YoY growth is within 2 pp of the SIC 3711 peer median",
+      "status": "refuted",
+      "evidenceIds": [
+        "ev-1"
+      ]
+    },
+    {
+      "id": "h-2",
+      "statement": "Sector-wide: the SIC 3711 industry (peers excluding Ford Motor) grew about as slowly as Ford Motor over the latest four fiscal years in the data — refuted if the peer aggregate grew more than 2 pp a year faster than Ford Motor on average",
+      "status": "supported",
+      "evidenceIds": [
+        "ev-2"
+      ]
+    },
+    {
+      "id": "h-3",
+      "statement": "Macro: weak real consumer demand (inflation eroding real spending) explains the growth pattern over the latest four fiscal years in the data — refuted if US real private consumption grew at least 1% a year on average",
+      "status": "refuted",
+      "evidenceIds": [
+        "ev-3"
+      ]
+    },
+    {
+      "id": "h-4",
+      "statement": "Margin trade-off: Ford Motor gave up revenue growth to rebuild operating margin over the latest four fiscal years in the data — refuted if Ford Motor's operating margin fell by 0.5 pp or more",
+      "status": "refuted",
+      "evidenceIds": [
+        "ev-4"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-1",
+      "hypothesisId": "h-1",
+      "purpose": "YoY revenue growth of F and SIC 3711 peers over the window",
+      "result": {
+        "queryId": "3a150a0f-42b3-48f6-9487-1bc72c2d22dd",
+        "sql": "WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'F' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('3711'))) ) SELECT CASE WHEN ticker = 'F' THEN 'focus' ELSE 'sic_peer' END AS role, ticker, fiscal_year, period_end, revenue_usd, ROUND(100.0 * (revenue_usd - prev_revenue_usd) / prev_revenue_usd, 2) AS yoy_growth_pct FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year BETWEEN (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') - 3 AND (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') ORDER BY role, ticker, fiscal_year LIMIT 200",
+        "columns": [
+          "role",
+          "ticker",
+          "fiscal_year",
+          "period_end",
+          "revenue_usd",
+          "yoy_growth_pct"
+        ],
+        "rows": [
+          [
+            "focus",
+            "F",
+            2022,
+            "2022-12-31",
+            158057000000,
+            15.93
+          ],
+          [
+            "focus",
+            "F",
+            2023,
+            "2023-12-31",
+            176191000000,
+            11.47
+          ],
+          [
+            "focus",
+            "F",
+            2024,
+            "2024-12-31",
+            184992000000,
+            5
+          ],
+          [
+            "focus",
+            "F",
+            2025,
+            "2025-12-31",
+            187267000000,
+            1.23
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2022,
+            "2022-12-31",
+            156735000000,
+            23.41
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2023,
+            "2023-12-31",
+            171842000000,
+            9.64
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2024,
+            "2024-12-31",
+            187442000000,
+            9.08
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2025,
+            "2025-12-31",
+            185019000000,
+            -1.29
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2022,
+            "2022-12-31",
+            81462000000,
+            51.35
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2023,
+            "2023-12-31",
+            96773000000,
+            18.8
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2024,
+            "2024-12-31",
+            97690000000,
+            0.95
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2025,
+            "2025-12-31",
+            94827000000,
+            -2.93
+          ]
+        ],
+        "rowCount": 12,
+        "elapsedMs": 9,
+        "source": [
+          "edgar.company_financials",
+          "edgar.company_profile"
+        ]
+      },
+      "summary": "12 row(s) x 6 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=F, fiscal_year=2022, period_end=2022-12-31, revenue_usd=158057000000, yoy_growth_pct=15.93 | role=focus, ticker=F, fiscal_year=2023, period_end=2023-12-31, revenue_usd=176191000000, yoy_growth_pct=11.47 | role=focus, ticker=F, fiscal_year=2024, period_end=2024-12-31, revenue_usd=184992000000, yoy_growth_pct=5 | ..."
+    },
+    {
+      "id": "ev-2",
+      "hypothesisId": "h-2",
+      "purpose": "Aggregate YoY revenue growth of SIC 3711 peers excluding F (same companies both years) vs F",
+      "result": {
+        "queryId": "00e85bfe-075e-4546-9b85-5a9da3f02c71",
+        "sql": "WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'F' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('3711'))) ), y AS (SELECT * FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year > (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') - 3 AND fiscal_year <= (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F')) SELECT fiscal_year, MAX(CASE WHEN ticker = 'F' THEN period_end END) AS focus_period_end, ROUND(100.0 * (SUM(CASE WHEN ticker = 'F' THEN revenue_usd END) - SUM(CASE WHEN ticker = 'F' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker = 'F' THEN prev_revenue_usd END), 2) AS focus_yoy_growth_pct, COUNT(CASE WHEN ticker <> 'F' THEN 1 END) AS peer_companies, SUM(CASE WHEN ticker <> 'F' THEN revenue_usd END) AS peer_revenue_usd, SUM(CASE WHEN ticker <> 'F' THEN prev_revenue_usd END) AS peer_prev_revenue_usd, ROUND(100.0 * (SUM(CASE WHEN ticker <> 'F' THEN revenue_usd END) - SUM(CASE WHEN ticker <> 'F' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker <> 'F' THEN prev_revenue_usd END), 2) AS peer_yoy_growth_pct FROM y GROUP BY fiscal_year ORDER BY fiscal_year LIMIT 200",
+        "columns": [
+          "fiscal_year",
+          "focus_period_end",
+          "focus_yoy_growth_pct",
+          "peer_companies",
+          "peer_revenue_usd",
+          "peer_prev_revenue_usd",
+          "peer_yoy_growth_pct"
+        ],
+        "rows": [
+          [
+            2023,
+            "2023-12-31",
+            11.47,
+            2,
+            268615000000,
+            238197000000,
+            12.77
+          ],
+          [
+            2024,
+            "2024-12-31",
+            5,
+            2,
+            285132000000,
+            268615000000,
+            6.15
+          ],
+          [
+            2025,
+            "2025-12-31",
+            1.23,
+            2,
+            279846000000,
+            285132000000,
+            -1.85
+          ]
+        ],
+        "rowCount": 3,
+        "elapsedMs": 9,
+        "source": [
+          "edgar.company_financials",
+          "edgar.company_profile"
+        ]
+      },
+      "summary": "3 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: fiscal_year=2023, focus_period_end=2023-12-31, focus_yoy_growth_pct=11.47, peer_companies=2, peer_revenue_usd=268615000000, peer_prev_revenue_usd=238197000000, peer_yoy_growth_pct=12.77 | fiscal_year=2024, focus_period_end=2024-12-31, focus_yoy_growth_pct=5, peer_companies=2, peer_revenue_usd=285132000000, peer_prev_revenue_usd=268615000000, peer_yoy_growth_pct=6.15 | fiscal_year=2025, focus_period_end=2025-12-31, focus_yo"
+    },
+    {
+      "id": "ev-3",
+      "hypothesisId": "h-3",
+      "purpose": "US CPI inflation, real private consumption growth and real GDP growth (World Bank) over the window",
+      "result": {
+        "queryId": "b9698c13-33f8-46fb-bc36-207b9ada2dde",
+        "sql": "SELECT year, ROUND(MAX(CASE WHEN indicator_id = 'FP.CPI.TOTL.ZG' THEN value END), 2) AS cpi_inflation_pct, ROUND(MAX(CASE WHEN indicator_id = 'NE.CON.PRVT.KD.ZG' THEN value END), 2) AS real_consumption_growth_pct, ROUND(MAX(CASE WHEN indicator_id = 'NY.GDP.MKTP.KD.ZG' THEN value END), 2) AS real_gdp_growth_pct FROM worldbank.us_macro_indicators WHERE year > (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') - 3 AND year <= (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') GROUP BY year ORDER BY year LIMIT 200",
+        "columns": [
+          "year",
+          "cpi_inflation_pct",
+          "real_consumption_growth_pct",
+          "real_gdp_growth_pct"
+        ],
+        "rows": [
+          [
+            2023,
+            4.12,
+            2.57,
+            2.93
+          ],
+          [
+            2024,
+            2.95,
+            2.95,
+            2.79
+          ],
+          [
+            2025,
+            null,
+            null,
+            2.16
+          ]
+        ],
+        "rowCount": 3,
+        "elapsedMs": 6,
+        "source": [
+          "worldbank.us_macro_indicators",
+          "edgar.company_financials"
+        ]
+      },
+      "summary": "3 row(s) x 4 col(s) from worldbank.us_macro_indicators, edgar.company_financials: year=2023, cpi_inflation_pct=4.12, real_consumption_growth_pct=2.57, real_gdp_growth_pct=2.93 | year=2024, cpi_inflation_pct=2.95, real_consumption_growth_pct=2.95, real_gdp_growth_pct=2.79 | year=2025, cpi_inflation_pct=null, real_consumption_growth_pct=null, real_gdp_growth_pct=2.16"
+    },
+    {
+      "id": "ev-4",
+      "hypothesisId": "h-4",
+      "purpose": "Gross and operating margin of F and SIC 3711 peers over the window",
+      "result": {
+        "queryId": "28d44d4d-6c38-440f-98dd-39c2ca106d9b",
+        "sql": "SELECT CASE WHEN ticker = 'F' THEN 'focus' ELSE 'sic_peer' END AS role, ticker, fiscal_year, MAX(CASE WHEN concept = 'revenue' THEN period_end END) AS period_end, MAX(CASE WHEN concept = 'revenue' THEN value_usd END) AS revenue_usd, ROUND(100.0 * COALESCE(MAX(CASE WHEN concept = 'gross_profit' THEN value_usd END), MAX(CASE WHEN concept = 'revenue' THEN value_usd END) - MAX(CASE WHEN concept = 'cost_of_revenue' THEN value_usd END)) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS gross_margin_pct, ROUND(100.0 * MAX(CASE WHEN concept = 'operating_income' THEN value_usd END) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS operating_margin_pct FROM edgar.company_financials WHERE (ticker = 'F' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('3711'))) AND concept IN ('revenue', 'gross_profit', 'cost_of_revenue', 'operating_income') AND fiscal_year BETWEEN (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') - 3 AND (SELECT MAX(fiscal_year) FROM edgar.company_financials WHERE concept = 'revenue' AND ticker = 'F') GROUP BY ticker, fiscal_year ORDER BY role, ticker, fiscal_year LIMIT 200",
+        "columns": [
+          "role",
+          "ticker",
+          "fiscal_year",
+          "period_end",
+          "revenue_usd",
+          "gross_margin_pct",
+          "operating_margin_pct"
+        ],
+        "rows": [
+          [
+            "focus",
+            "F",
+            2022,
+            "2022-12-31",
+            158057000000,
+            14.97,
+            3.97
+          ],
+          [
+            "focus",
+            "F",
+            2023,
+            "2023-12-31",
+            176191000000,
+            14.55,
+            3.1
+          ],
+          [
+            "focus",
+            "F",
+            2024,
+            "2024-12-31",
+            184992000000,
+            14.36,
+            2.82
+          ],
+          [
+            "focus",
+            "F",
+            2025,
+            "2025-12-31",
+            187267000000,
+            6.84,
+            -4.9
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2022,
+            "2022-12-31",
+            156735000000,
+            null,
+            6.58
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2023,
+            "2023-12-31",
+            171842000000,
+            null,
+            5.41
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2024,
+            "2024-12-31",
+            187442000000,
+            null,
+            6.82
+          ],
+          [
+            "sic_peer",
+            "GM",
+            2025,
+            "2025-12-31",
+            185019000000,
+            null,
+            1.57
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2022,
+            "2022-12-31",
+            81462000000,
+            25.6,
+            16.76
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2023,
+            "2023-12-31",
+            96773000000,
+            18.25,
+            9.19
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2024,
+            "2024-12-31",
+            97690000000,
+            17.86,
+            7.24
+          ],
+          [
+            "sic_peer",
+            "TSLA",
+            2025,
+            "2025-12-31",
+            94827000000,
+            18.03,
+            4.59
+          ]
+        ],
+        "rowCount": 12,
+        "elapsedMs": 13,
+        "source": [
+          "edgar.company_financials",
+          "edgar.company_profile"
+        ]
+      },
+      "summary": "12 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=F, fiscal_year=2022, period_end=2022-12-31, revenue_usd=158057000000, gross_margin_pct=14.97, operating_margin_pct=3.97 | role=focus, ticker=F, fiscal_year=2023, period_end=2023-12-31, revenue_usd=176191000000, gross_margin_pct=14.55, operating_margin_pct=3.1 | role=focus, ticker=F, fiscal_year=2024, period_end=2024-12-31, revenue_usd=184992000000, gross_margin_pct=14.36, operating_margin_pct=2.82 | ..."
+    }
+  ],
+  "rememberedIds": [
+    "mem-6",
+    "mem-7",
+    "mem-8",
+    "mem-9",
+    "mem-10"
+  ],
+  "status": "done",
+  "startedAt": "2026-10-24T15:17:27.962Z",
+  "answer": {
+    "summary": "Supported by the data: Sector-wide: the SIC 3711 industry (peers excluding Ford Motor) grew about as slowly as Ford Motor over the latest four fiscal years in the data. Refuted: Company-specific, Macro, Margin trade-off. Company figures cite each fiscal period end date (edgar fiscal_year = calendar year in which most of the fiscal year falls). Produced by Causa's deterministic sample analyst (SAMPLE_MODE: rule-based verdicts over real SEC EDGAR / World Bank rows, no LLM).",
+    "claims": [
+      {
+        "text": "Sector-wide: Ford Motor (F)'s SIC 3711 peers excluding F grew 12.77% (fiscal_year 2023), 6.15% (fiscal_year 2024), -1.85% (fiscal_year 2025) in aggregate, versus F's 11.47% (fiscal_year 2023), 5.00% (fiscal_year 2024), 1.23% (fiscal_year 2025), so the industry moved the same way [ev-2].",
+        "confidence": "high",
+        "evidenceIds": [
+          "ev-2"
+        ],
+        "verified": true,
+        "criticNote": "Critic: Sample critic (deterministic): 6 number(s) re-checked against the cited rows."
+      },
+      {
+        "text": "Ford Motor (F) revenue went from $158.06B (FY ending 2022-12-31) to $187.27B (FY ending 2025-12-31), a 18.5% change; YoY growth was 11.47% (FY ending 2023-12-31), 5.00% (FY ending 2024-12-31), 1.23% (FY ending 2025-12-31) [ev-1].",
+        "confidence": "medium",
+        "evidenceIds": [
+          "ev-1"
+        ],
+        "verified": true,
+        "criticNote": "Critic: Sample critic (deterministic): 16 number(s) re-checked against the cited rows."
+      },
+      {
+        "text": "Not company-specific: over fiscal_year 2023, 2024, 2025 Ford Motor (F)'s YoY growth (11.47% and 5.00% and 1.23%) was in line with its SIC 3711 peers: GM 9.64% and 9.08% and -1.29%; TSLA 18.80% and 0.95% and -2.93% [ev-1].",
+        "confidence": "medium",
+        "evidenceIds": [
+          "ev-1"
+        ],
+        "verified": true,
+        "criticNote": "Critic: Sample critic (deterministic): 9 number(s) re-checked against the cited rows."
+      },
+      {
+        "text": "Not macro: US real private consumption grew 2.57% in 2023, 2.95% in 2024 while CPI inflation was 4.12% in 2023, 2.95% in 2024, so consumer demand was still expanding in real terms [ev-3].",
+        "confidence": "medium",
+        "evidenceIds": [
+          "ev-3"
+        ],
+        "verified": true,
+        "criticNote": "Critic: Sample critic (deterministic): 4 number(s) re-checked against the cited rows."
+      },
+      {
+        "text": "Not a margin trade-off: Ford Motor (F)'s operating margin also fell, from 3.97% (FY ending 2022-12-31) to -4.90% (FY ending 2025-12-31) [ev-4].",
+        "confidence": "medium",
+        "evidenceIds": [
+          "ev-4"
+        ],
+        "verified": true,
+        "criticNote": "Critic: Sample critic (deterministic): 6 number(s) re-checked against the cited rows."
+      }
+    ],
+    "models": [
+      "causa/sample-analyst"
+    ]
+  },
+  "finishedAt": "2026-10-24T15:17:28.464Z"
+}

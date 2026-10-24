@@ -20,7 +20,7 @@ export const INTENTS: IntentDef[] = [
     description: 'Explain why a metric changed, lagged, slowed or diverged for one or more entities.',
     capabilities: ['catalog.read', 'sql.query', 'memory.recall', 'memory.remember'],
     riskClass: 'low',
-    budget: { maxQueries: 8, maxLlmCalls: 12, maxSeconds: 240 },
+    budget: { maxQueries: 14, maxLlmCalls: 28, maxSeconds: 300 },
     examples: ["Why did Target's revenue growth lag Walmart's after 2021?", 'Is Ford revenue slowdown company-specific or sector-wide?'],
   },
   {
@@ -28,7 +28,7 @@ export const INTENTS: IntentDef[] = [
     description: 'Compare entities on one or more metrics over a period.',
     capabilities: ['catalog.read', 'sql.query', 'memory.recall', 'memory.remember'],
     riskClass: 'low',
-    budget: { maxQueries: 6, maxLlmCalls: 10, maxSeconds: 180 },
+    budget: { maxQueries: 12, maxLlmCalls: 24, maxSeconds: 300 },
     examples: ['Compare Ford and GM revenue 2019-2023', 'Walmart versus Costco margins'],
   },
   {
@@ -36,7 +36,7 @@ export const INTENTS: IntentDef[] = [
     description: 'Look up a single fact or figure.',
     capabilities: ['catalog.read', 'sql.query', 'memory.recall'],
     riskClass: 'low',
-    budget: { maxQueries: 3, maxLlmCalls: 5, maxSeconds: 90 },
+    budget: { maxQueries: 4, maxLlmCalls: 8, maxSeconds: 120 },
     examples: ['What was Ford revenue in 2022?', 'Show the CPI for 2021'],
   },
   {

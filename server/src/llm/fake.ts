@@ -1,4 +1,6 @@
-// Deterministic scripted LLM for CAUSA_FAKE=1. It reads the phase tag in the system prompt and the
+// Deterministic scripted LLM for unit tests (generic: works against any catalog).
+// SAMPLE_MODE uses the deterministic analyst in src/agent/analyst.ts instead, which runs real analytic SQL.
+// Former header: Deterministic scripted LLM for CAUSA_FAKE=1. It reads the phase tag in the system prompt and the
 // structured blocks the agent puts in the conversation, so it can drive a full investigation offline
 // against whatever fixture catalog the fake Zetaris client serves.
 import type { ChatMessage, ToolCall } from '../types';
@@ -78,13 +80,14 @@ function toolCall(name: string, args: Record<string, unknown>): ToolCall {
 
 const STATUS_BY_HYP: Record<string, string> = { 'h-1': 'supported', 'h-2': 'supported', 'h-3': 'refuted', 'h-4': 'inconclusive' };
 
+/** Markovian turns carry state + latest tool results in later user messages (never 'tool' role messages). */
+function laterUserText(messages: ChatMessage[]): string {
+  const users = messages.filter((m) => m.role === 'user');
+  return users.slice(1).map((m) => m.content).join('\n');
+}
+
 function verdict(hypId: string, messages: ChatMessage[]): string {
-  const evIds = new Set<string>();
-  for (const m of messages) {
-    if (m.role !== 'tool') continue;
-    for (const match of m.content.matchAll(/"evidenceId":"(ev-\d+)"/g)) evIds.add(match[1]);
-  }
-  const ids = [...evIds];
+  const ids = [...new Set([...laterUserText(messages).matchAll(/\b(ev-\d+)\b/g)].map((m) => m[1]))];
   const status = ids.length === 0 ? 'inconclusive' : STATUS_BY_HYP[hypId] ?? 'inconclusive';
   return JSON.stringify({
     status,
@@ -97,10 +100,10 @@ function investigateStep(messages: ChatMessage[], userText: string): { content: 
   const hypId = userText.match(/HYPOTHESIS (h-\d+)/)?.[1] ?? 'h-1';
   const hypNum = Number(hypId.slice(2)) || 1;
   const tables = [...userText.matchAll(/^- table: (\S+)/gm)].map((m) => m[1]);
-  const lastUserIdx = messages.map((m) => m.role).lastIndexOf('user');
-  const toolMsgs = messages.slice(lastUserIdx + 1).filter((m) => m.role === 'tool');
-  const last = toolMsgs[toolMsgs.length - 1];
-  if (!last) {
+  const last = messages[messages.length - 1];
+  const at = last?.role === 'user' ? last.content.indexOf('LATEST TOOL RESULTS') : -1;
+  const latest = at >= 0 ? last.content.slice(at) : '';
+  if (!latest) {
     if (tables.length === 0) return { content: '', toolCalls: [toolCall('zetaris_catalog', {})] };
     const t = tables[(hypNum - 1) % tables.length];
     return {
@@ -108,16 +111,16 @@ function investigateStep(messages: ChatMessage[], userText: string): { content: 
       toolCalls: [toolCall('zetaris_query', { sql: `SELECT * FROM ${t} LIMIT 20`, purpose: `Pull ${t} to test ${hypId}` })],
     };
   }
-  if (/"evidenceId":"ev-\d+"/.test(last.content)) return { content: verdict(hypId, messages), toolCalls: [] };
-  if (/^ERROR/.test(last.content)) {
-    const failures = toolMsgs.filter((m) => /^ERROR/.test(m.content)).length;
-    if (failures > 2) return { content: verdict(hypId, messages), toolCalls: [] };
-    const t = tables[(hypNum - 1) % Math.max(1, tables.length)] ?? last.content.match(/\b[\w]+\.[\w]+\.[\w]+\b/)?.[0];
+  if (/"evidenceId":"ev-\d+"/.test(latest)) return { content: verdict(hypId, messages), toolCalls: [] };
+  const err = latest.match(/-> ERROR \(attempt (\d+) of (\d+)\)/);
+  if (err) {
+    if (Number(err[1]) >= Number(err[2])) return { content: verdict(hypId, messages), toolCalls: [] };
+    const t = tables[(hypNum - 1) % Math.max(1, tables.length)] ?? latest.match(/\b[\w]+\.[\w]+\.[\w]+\b/)?.[0];
     if (!t) return { content: verdict(hypId, messages), toolCalls: [] };
     return { content: '', toolCalls: [toolCall('zetaris_query', { sql: `SELECT * FROM ${t} LIMIT 5`, purpose: `Retry simpler query on ${t}` })] };
   }
   // catalog / describe output: pick a table from it
-  const listed = last.content.match(/"fqName":"([^"]+)"/)?.[1];
+  const listed = latest.match(/"fqName":"([^"]+)"/)?.[1];
   if (listed) {
     return { content: '', toolCalls: [toolCall('zetaris_query', { sql: `SELECT * FROM ${listed} LIMIT 20`, purpose: `Pull ${listed} to test ${hypId}` })] };
   }
@@ -177,10 +180,11 @@ export function createFakeLLM(opts: { model?: string } = {}): CausaLLM {
         if (!o.tools?.length && !content) content = verdict('h-1', messages);
       } else if (system.includes(PHASE.plan)) {
         phase = 'plan';
-        const q = firstUser.match(/QUESTION: (.*)/)?.[1] ?? 'the question';
+        const focus = firstUser.match(/^ENTITY .*"name":"([^"]+)"/m)?.[1];
+        const q = focus ? 'its revenue growth versus peers' : firstUser.match(/QUESTION: (.*)/)?.[1] ?? 'the question';
         content = JSON.stringify({
           hypotheses: [
-            { statement: `Company-specific execution explains: ${q}`, layer: 'company', test: 'Compare the company YoY revenue growth with its own history.', refutedIf: 'Growth is in line with its own history.' },
+            { statement: `Company-specific execution${focus ? ` at ${focus}` : ""} explains: ${q}`, layer: 'company', test: 'Compare the company YoY revenue growth with its own history.', refutedIf: 'Growth is in line with its own history.' },
             { statement: 'The whole sector slowed at the same time', layer: 'sector', test: 'Compare YoY growth with SIC peers.', refutedIf: 'Peers kept growing.' },
             { statement: 'Macro inflation inflated nominal revenue', layer: 'macro', test: 'Compare nominal growth with CPI.', refutedIf: 'Real growth matches nominal growth.' },
           ],

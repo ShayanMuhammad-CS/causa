@@ -2,24 +2,37 @@
 // contract -> (blocked? stop) -> recall -> schema retrieval -> hypotheses -> per-hypothesis tool loop
 // -> verdicts -> synthesis -> critic -> answer -> remember. The signed contract is enforced in code
 // through Budget (allowedTools, maxQueries, maxLlmCalls, maxSeconds).
+// Meterless engines in the loop: Scout Intent (contract), World Model (entity grounding before investigating,
+// metric facts with provenance after each evidence), Markovian (bounded carried state per hypothesis instead of an
+// ever-growing transcript), H-MEM (recall / remember). Every LLM call emits a model_call event.
 import { z } from 'zod';
 import type {
   CatalogTable, ChatMessage, ChatResponse, Evidence, ExecutionContract, Hypothesis, IntentEngine,
   Investigation, InvestigationEvent, LLM, MemoryService, QueryResult, ZetarisClient,
 } from '../types';
 import { chatJson, type ChatFn } from '../llm/json';
-import type { AgentChatMessage } from '../llm/nim';
+import { createMarkovian, type MarkovService } from '../markov/index';
+import type { CompanyRef, WorldService } from '../world/index';
 import { Budget, BudgetExceededError, isToolAllowed } from './budget';
+import { composeCarriedState, evidenceLedgerLine, formatToolOutcome, splitCheckpoint } from './carry';
 import { critique, type DraftClaim } from './critic';
-import { investigateMessages, planMessages, synthesizeMessages, VERDICT_NUDGE } from './prompts';
+import { modelCallEvent, modelCallScope, modelOf, type ModelRole } from './modelcalls';
+import { continuationMessage, investigateMessages, planMessages, synthesizeMessages, VERDICT_NUDGE, type GroundedEntities } from './prompts';
 import { retrieveSchema } from './schema';
 import { allowedToolSpecs, executeTool, summarizeResult, type HypothesisToolState } from './tools';
+import { extractEntityMentions, observeEvidenceMetrics, toWorldEntity } from './world';
 
 export interface AgentDeps {
   llm: LLM;
   zetaris: ZetarisClient;
   memory: MemoryService;
   intent: IntentEngine;
+  /** Meterless World Model: grounds company names before investigating and records metric facts. */
+  world?: WorldService;
+  /** Seeds the World Model from the Zetaris catalog (memoised by the caller; retried if it failed before). */
+  seedWorld?: () => Promise<unknown>;
+  /** Meterless Markovian factory (one bounded run per hypothesis). Defaults to the in-memory engine. */
+  markov?: () => MarkovService;
 }
 
 export interface AgentConfig {
@@ -105,27 +118,35 @@ function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
   ]).finally(() => clearTimeout(t));
 }
 
-export async function runInvestigation(opts: {
+type RunOpts = {
   investigation: Investigation;
   deps: AgentDeps;
   emit: (e: InvestigationEvent) => void;
   config?: Partial<AgentConfig>;
-}): Promise<Investigation> {
-  const inv = opts.investigation;
-  const { llm, zetaris, memory, intent } = opts.deps;
-  const cfg: AgentConfig = {
-    ...DEFAULT_CONFIG,
-    ...opts.config,
-    thinking: { ...DEFAULT_CONFIG.thinking, ...opts.config?.thinking },
-    models: { ...DEFAULT_CONFIG.models, ...opts.config?.models },
-  };
-  const handledBy = new Map<string, number>(); // "model via provider" -> calls
-  const emit = (e: InvestigationEvent) => {
+};
+
+export async function runInvestigation(opts: RunOpts): Promise<Investigation> {
+  const safeEmit = (e: InvestigationEvent) => {
     try {
       opts.emit(e);
     } catch (err) {
       console.error('[agent] emit failed', err);
     }
+  };
+  const handledBy = new Map<string, number>(); // model reported by the provider -> calls
+  const onModel = (m: string) => handledBy.set(m, (handledBy.get(m) ?? 0) + 1);
+  // LLM calls made by other modules on this run's behalf (Scout Intent) report model_call through this scope.
+  return modelCallScope.run({ emit: safeEmit, onModel }, () => run(opts, safeEmit, handledBy, onModel));
+}
+
+async function run(opts: RunOpts, emit: (e: InvestigationEvent) => void, handledBy: Map<string, number>, onModel: (m: string) => void): Promise<Investigation> {
+  const inv = opts.investigation;
+  const { llm, zetaris, memory, intent, world } = opts.deps;
+  const cfg: AgentConfig = {
+    ...DEFAULT_CONFIG,
+    ...opts.config,
+    thinking: { ...DEFAULT_CONFIG.thinking, ...opts.config?.thinking },
+    models: { ...DEFAULT_CONFIG.models, ...opts.config?.models },
   };
   const think = (text: string) => emit({ type: 'thinking', text });
   const finish = (status: Investigation['status'], error?: string) => {
@@ -159,15 +180,60 @@ export async function runInvestigation(opts: {
 
     // Metered chat: every LLM call is charged against maxLlmCalls and raced against maxSeconds.
     // Every response records which model actually served it (Meterless route headers included).
-    const chatFor = (phase: string, role: 'planner' | 'critic' = 'planner'): ChatFn => async (messages, o) => {
+    const chatFor = (phase: string, role: ModelRole, modelRole: 'planner' | 'critic' = 'planner'): ChatFn => async (messages, o) => {
       budget.chargeLlm();
-      const model = o?.model ?? cfg.models[role];
+      const model = o?.model ?? cfg.models[modelRole];
       const started = Date.now();
       const res: ChatResponse = await budget.withinDeadline(llm.chat(messages, model ? { ...o, model } : o));
-      handledBy.set(res.model, (handledBy.get(res.model) ?? 0) + 1);
-      think(`[${phase}] handled by ${res.model} in ${Date.now() - started}ms (LLM call ${budget.llmCalls}/${budget.maxLlmCalls})`);
+      const ms = Date.now() - started;
+      onModel(modelOf(res));
+      emit(modelCallEvent(role, res, ms));
+      think(`[${phase}] handled by ${res.model} in ${ms}ms (LLM call ${budget.llmCalls}/${budget.maxLlmCalls})`);
       if (res.reasoning) think(`[${phase}] ${res.reasoning.length > 1500 ? res.reasoning.slice(0, 1500) + ' ...' : res.reasoning}`);
       return res;
+    };
+
+    // 2b. World Model grounding: resolve company names before investigating; unknown names are refused, not invented.
+    let grounded: CompanyRef[] = [];
+    let unknownNames: string[] = [];
+    let entities: GroundedEntities | undefined;
+    let worldOk = false;
+    if (world) {
+      try {
+        await opts.deps.seedWorld?.();
+        ({ entities: grounded, unknown: unknownNames } = extractEntityMentions(inv.question, world, record.entities));
+        entities = { known: grounded, unknown: unknownNames };
+        worldOk = true;
+        emit({ type: 'world', entities: grounded.map(toWorldEntity), unknown: unknownNames });
+        think(
+          `World Model: ${grounded.map((c) => `${c.name} (${c.ticker ?? '-'}, CIK ${c.cik}, SIC ${c.sic ?? '-'})`).join(', ') || 'no company named'}` +
+            (unknownNames.length ? `; not in the data: ${unknownNames.join(', ')}` : ''),
+        );
+      } catch (e) {
+        think(`World Model grounding unavailable (${(e as Error).message}); company names are not checked against the data.`);
+      }
+    }
+    const unknownNote = unknownNames.length
+      ? `${unknownNames.join(', ')} ${unknownNames.length > 1 ? 'are' : 'is'} not in the data (no company with that name in the Zetaris company profile table), so Causa makes no claim about ${unknownNames.length > 1 ? 'them' : 'it'}. `
+      : '';
+    if (worldOk && unknownNames.length > 0 && grounded.length === 0) {
+      const known = world!.snapshot().companies.map((c) => c.name).sort().join(', ');
+      inv.answer = {
+        summary: `${unknownNames.join(', ')} ${unknownNames.length > 1 ? 'are' : 'is'} not in the data available through Zetaris (companies with data: ${known || 'none'}). Causa does not invent figures for companies it has no rows for, so no cause can be stated.`,
+        claims: [],
+        models: [...handledBy.keys()],
+      };
+      emit({ type: 'answer', answer: inv.answer });
+      return finish('done');
+    }
+    const recordWorld = async (ev: Evidence) => {
+      if (!worldOk) return;
+      try {
+        const n = await observeEvidenceMetrics(world!, ev, inv.id);
+        if (n > 0) think(`World Model: ${n} metric fact(s) from ${ev.id} recorded with provenance (query ${ev.result.queryId}).`);
+      } catch (e) {
+        think(`World Model could not record ${ev.id}: ${(e as Error).message}`);
+      }
     };
 
     // 3. Recall prior findings.
@@ -207,7 +273,7 @@ export async function runInvestigation(opts: {
     const plans: { test: string; refutedIf: string; rationale?: string }[] = [];
     if (!stopReason) {
       try {
-        const { value } = await chatJson(chatFor('plan'), planMessages({ question: inv.question, contract, schema, recalled: inv.recalled }), PlanSchema, {
+        const { value } = await chatJson(chatFor('plan', 'planner'), planMessages({ question: inv.question, contract, schema, recalled: inv.recalled, entities }), PlanSchema, {
           thinking: cfg.thinking.plan,
         });
         value.hypotheses.slice(0, 4).forEach((h, i) => {
@@ -259,7 +325,7 @@ export async function runInvestigation(opts: {
       };
       const llmShare = Math.max(2, Math.floor((budget.remainingLlmCalls() - cfg.reserveLlmCalls) / left));
       const maxSteps = Math.min(cfg.maxStepsPerHypothesis, llmShare - 1);
-      const messages: AgentChatMessage[] = investigateMessages({
+      const base = investigateMessages({
         question: inv.question,
         hypothesis: h,
         test: plans[i].test,
@@ -267,35 +333,66 @@ export async function runInvestigation(opts: {
         schema,
         priorEvidence: inv.evidence,
         queryAllowance: state.queryCap,
+        entities,
       });
+      // Markovian: each call sees the fixed task framing + the engine's bounded carried state + only the latest
+      // tool results. The carried state is a deterministic evidence ledger (ids + key numbers) merged with the
+      // model's own [STATE_CHECKPOINT], handed to the engine as marker-level state.
+      const markov = (opts.deps.markov ?? (() => createMarkovian({})))();
+      markov.begin(`${inv.question} | ${h.id}: ${h.statement.split(' — ')[0]}`);
+      const ledger: string[] = [];
+      let nextPrompt = '';
+      let latest = '';
+      let markovStep = 0;
+      let lastError: string | undefined;
+      const current = (): ChatMessage[] =>
+        markovStep === 0 ? base : [...base, { role: 'user', content: continuationMessage(nextPrompt, latest, markovStep) }];
       let verdict: z.infer<typeof VerdictSchema> | undefined;
       const ownEvidence = new Set<string>();
       try {
         for (let step = 0; step < maxSteps; step++) {
           if (budget.remainingLlmCalls() < cfg.reserveLlmCalls + 2 || budget.pastSoftDeadline()) break;
-          const res = await chatFor(`investigate ${h.id}`)(messages, { tools, thinking: cfg.thinking.investigate });
+          const res = await chatFor(`investigate ${h.id}`, 'sql')(current(), { tools, thinking: cfg.thinking.investigate });
           if (res.toolCalls.length === 0) {
             const parsed = VerdictSchema.safeParse(safeJson(res.content));
             if (parsed.success) verdict = parsed.data;
-            else messages.push({ role: 'assistant', content: res.content });
             break;
           }
-          messages.push({ role: 'assistant', content: res.content, toolCalls: res.toolCalls });
+          const { text: modelText, checkpoint } = splitCheckpoint(res.content);
+          const outs: string[] = [];
           let stop = false;
           for (const call of res.toolCalls) {
             const before = inv.evidence.length;
             const out = await executeTool(call, { zetaris, budget, catalog: getCatalog, state, emit, addEvidence });
-            for (const ev of inv.evidence.slice(before)) ownEvidence.add(ev.id);
-            messages.push({ role: 'tool', tool_call_id: call.id, name: call.name, content: out.content });
+            for (const ev of inv.evidence.slice(before)) {
+              ownEvidence.add(ev.id);
+              ledger.push(evidenceLedgerLine(ev));
+              await recordWorld(ev);
+            }
+            if (out.content.startsWith('ERROR')) lastError = out.content.slice(0, 200);
+            outs.push(formatToolOutcome(call, out.content));
             if (out.stop) {
               stop = true;
               if (out.stop === 'budget') noteStop(new BudgetExceededError('maxQueries', `${budget.queries}/${budget.maxQueries} queries used`));
             }
           }
+          latest = outs.join('\n');
+          const carried = composeCarriedState({
+            hypothesis: h,
+            ledger,
+            checkpoint,
+            queriesLeft: Math.max(0, state.queryCap - state.queriesUsed),
+            lastError,
+            maxChars: markov.config.carryoverTokens * 4 - 200,
+          });
+          const rep = await markov.step({ kind: 'tool_result', text: `${modelText}\n${latest}`.trim(), state: carried });
+          markovStep = rep.step;
+          nextPrompt = rep.nextPrompt;
+          emit({ type: 'markov', hypothesisId: h.id, step: rep.step, tokensBounded: rep.tokensBounded, tokensNaive: rep.tokensNaive });
           if (stop) break;
         }
         if (!verdict && budget.remainingLlmCalls() > cfg.reserveLlmCalls) {
-          const { value } = await chatJson(chatFor(`verdict ${h.id}`), [...messages, { role: 'user', content: VERDICT_NUDGE }], VerdictSchema, {
+          const { value } = await chatJson(chatFor(`verdict ${h.id}`, 'verdict'), [...current(), { role: 'user', content: VERDICT_NUDGE }], VerdictSchema, {
             thinking: false,
           });
           verdict = value;
@@ -304,6 +401,11 @@ export async function runInvestigation(opts: {
         if (e instanceof BudgetExceededError) noteStop(e);
         else think(`Testing ${h.id} failed: ${(e as Error).message}`);
       }
+      if (markovStep > 0) {
+        const st = markov.stats();
+        markov.finish(verdict ? 'completed' : 'aborted');
+        think(`Markovian ${h.id}: ${st.steps} step(s), ~${st.totalBounded} bounded vs ~${st.totalNaive} naive input tokens (${st.efficiencyPercent.toFixed(0)}% saved, estimated).`);
+      }
       const known = new Set(inv.evidence.map((e) => e.id));
       const cited = (verdict?.evidenceIds ?? []).filter((id) => known.has(id));
       h.evidenceIds = [...new Set([...ownEvidence, ...cited])];
@@ -311,6 +413,11 @@ export async function runInvestigation(opts: {
       h.status = verdict && h.evidenceIds.length > 0 ? verdict.status : 'inconclusive';
       plans[i].rationale = verdict?.rationale ?? 'No verdict reached within budget.';
       emit({ type: 'verdict', hypothesis: { ...h } });
+      if (worldOk) {
+        await world!
+          .observeHypothesis(inv.id, { id: h.id, statement: h.statement, status: h.status, evidenceIds: h.evidenceIds, companyIds: grounded.map((c) => c.id) }, { investigationId: inv.id })
+          .catch((e) => think(`World Model could not record ${h.id}: ${(e as Error).message}`));
+      }
     }
 
     // 7. Synthesis (ranked claims) — falls back to a deterministic summary if the LLM budget is gone.
@@ -320,7 +427,7 @@ export async function runInvestigation(opts: {
     let synthesized = false;
     if (budget.remainingLlmCalls() > 0 && budget.remainingMs() > 0 && inv.evidence.length > 0) {
       try {
-        const { value } = await chatJson(chatFor('synthesize'), synthesizeMessages({ question: inv.question, hypotheses: hypsWithRationale, evidence: inv.evidence }), AnswerSchema, {
+        const { value } = await chatJson(chatFor('synthesize', 'synthesis'), synthesizeMessages({ question: inv.question, hypotheses: hypsWithRationale, evidence: inv.evidence, entities }), AnswerSchema, {
           thinking: cfg.thinking.synthesize,
         });
         summary = value.summary;
@@ -343,11 +450,11 @@ export async function runInvestigation(opts: {
 
     // 8. Critic: LLM review + deterministic numeric check.
     const canCritic = budget.remainingLlmCalls() > 0 && budget.remainingMs() > 0 && drafts.length > 0;
-    const review = await critique({ claims: drafts, evidence: inv.evidence, chat: canCritic ? chatFor('critic', 'critic') : undefined, thinking: cfg.thinking.critic });
+    const review = await critique({ claims: drafts, evidence: inv.evidence, chat: canCritic ? chatFor('critic', 'critic', 'critic') : undefined, thinking: cfg.thinking.critic });
     for (const d of review.dropped) think(`Critic dropped a claim: "${d.text}" (${d.note})`);
     if (review.llmError && canCritic) think(`LLM critic unavailable: ${review.llmError}`);
-    // `models` is an extra field beyond types.ts so the UI can show "handled by nvidia/nemotron-..." on the answer.
-    const answer = { summary, claims: review.claims, models: [...handledBy.keys()] };
+    // answer.models: every model the provider reported for this run (NVIDIA award: show which model handled it).
+    const answer = { summary: unknownNote + summary, claims: review.claims, models: [...handledBy.keys()] };
     inv.answer = answer;
     emit({ type: 'answer', answer: inv.answer });
 
@@ -369,6 +476,14 @@ export async function runInvestigation(opts: {
         }
       }
       if (inv.rememberedIds.length > 0) emit({ type: 'remembered', ids: [...inv.rememberedIds] });
+      if (worldOk) {
+        for (const [k, c] of verified.entries()) {
+          const hypothesisIds = inv.hypotheses.filter((h) => h.evidenceIds.some((e) => c.evidenceIds.includes(e))).map((h) => h.id);
+          await world!
+            .observeFinding(inv.id, { id: `f-${k + 1}`, text: c.text, confidence: c.confidence, verified: true, evidenceIds: c.evidenceIds, hypothesisIds }, { investigationId: inv.id })
+            .catch((e) => think(`World Model could not record a finding: ${(e as Error).message}`));
+        }
+      }
     } else if (verified.length > 0 && !isToolAllowed(contract, 'memory.remember')) {
       think('Contract does not allow memory.remember; verified findings were not stored.');
     }

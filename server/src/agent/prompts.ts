@@ -2,6 +2,24 @@
 // they are harmless to Nemotron.
 import type { CatalogTable, Evidence, ExecutionContract, Hypothesis, MemoryHit } from '../types';
 
+/** Companies grounded by the Meterless World Model (known) and named companies that are not in the data (unknown). */
+export interface GroundedEntities {
+  known: { name: string; ticker?: string; cik?: string; sic?: string }[];
+  unknown: string[];
+}
+
+/** Structured entity block shared by the plan / investigate / synthesize prompts. Empty when no World Model ran. */
+export function formatEntities(e?: GroundedEntities): string {
+  if (!e) return '';
+  const known = e.known.length
+    ? e.known.map((k) => `ENTITY ${JSON.stringify({ name: k.name, ticker: k.ticker, cik: k.cik, sic: k.sic })}`).join('\n')
+    : '(none named)';
+  const unknown = e.unknown.length
+    ? `\nNOT IN THE DATA: ${e.unknown.join(', ')} -- no rows exist for these names: do not form hypotheses about them and never invent figures for them.`
+    : '';
+  return `\nKNOWN ENTITIES (Meterless World Model, grounded in the Zetaris company profile table; the first is the focus):\n${known}${unknown}`;
+}
+
 export const PHASE = {
   plan: '[causa:plan]',
   investigate: '[causa:investigate]',
@@ -44,7 +62,7 @@ export function formatEvidenceBrief(evidence: Evidence[]): string {
   return evidence.map((e) => `- [${e.id}] (${e.hypothesisId}) ${e.purpose} => ${e.summary}`).join('\n');
 }
 
-export function planMessages(args: { question: string; contract: ExecutionContract; schema: CatalogTable[]; recalled: MemoryHit[] }) {
+export function planMessages(args: { question: string; contract: ExecutionContract; schema: CatalogTable[]; recalled: MemoryHit[]; entities?: GroundedEntities }) {
   const i = args.contract.intent;
   return [
     {
@@ -61,7 +79,7 @@ Reply with ONLY this JSON:
     {
       role: 'user' as const,
       content: `QUESTION: ${args.question}
-INTENT: ${i.intent}; entities: ${i.entities.join(', ') || '-'}; metrics: ${i.metrics.join(', ') || '-'}; time range: ${i.timeRange ?? '-'}
+INTENT: ${i.intent}; entities: ${i.entities.join(', ') || '-'}; metrics: ${i.metrics.join(', ') || '-'}; time range: ${i.timeRange ?? '-'}${formatEntities(args.entities)}
 PRIOR FINDINGS (memory):
 ${formatRecall(args.recalled)}
 RELEVANT SCHEMA (from the Zetaris catalog):
@@ -78,6 +96,7 @@ export function investigateMessages(args: {
   schema: CatalogTable[];
   priorEvidence: Evidence[];
   queryAllowance: number;
+  entities?: GroundedEntities;
 }) {
   return [
     {
@@ -87,6 +106,8 @@ export function investigateMessages(args: {
 ${PHASE.investigate} TASK: test ONE hypothesis with read-only Lightning SQL through Zetaris.
 Tools: zetaris_catalog (list tables), zetaris_describe (columns of a table), zetaris_query (run ONE read-only SELECT/WITH; always give a 'purpose').
 SQL rules: Lightning SQL (Spark SQL dialect), fully qualified table names exactly as listed, SELECT/WITH only, aggregate in SQL (GROUP BY, YoY via LAG or self-join), keep result sets small (<= 50 rows). If a query fails, read the error, fix the SQL and retry.
+Context is bounded (Meterless Markovian): after each tool step you get only the CARRYOVER STATE plus the latest tool results, not the full transcript. Whenever you call a tool, end your message text with [STATE_CHECKPOINT] followed by COMPLETED / REMAINING / DECISIONS / CONTEXT lines that keep every evidence id and the key numbers.
+fiscal_year labels follow the data convention; when you quote a figure, cite its period end date (e.g. "FY ending 2025-01-31") so fiscal years are not mislabelled.
 You have at most ${args.queryAllowance} queries for this hypothesis: get the decisive comparison first.
 When you have enough evidence (or none is obtainable), STOP calling tools and reply with ONLY this JSON:
 {"status":"supported|refuted|inconclusive","rationale":"<2-3 sentences with numbers copied from the rows, citing [ev-N]>","evidenceIds":["ev-N"]}`,
@@ -96,13 +117,23 @@ When you have enough evidence (or none is obtainable), STOP calling tools and re
       content: `QUESTION: ${args.question}
 HYPOTHESIS ${args.hypothesis.id}: ${args.hypothesis.statement}
 PLANNED TEST: ${args.test}
-REFUTED IF: ${args.refutedIf}
+REFUTED IF: ${args.refutedIf}${formatEntities(args.entities)}
 EVIDENCE ALREADY COLLECTED (you may cite these ids instead of re-querying):
 ${formatEvidenceBrief(args.priorEvidence)}
 SCHEMA:
 ${formatSchema(args.schema)}`,
     },
   ];
+}
+
+/** Markovian continuation turn: the engine's bounded prompt (goal + carried state) plus only the latest tool results. */
+export function continuationMessage(nextPrompt: string, latest: string, step: number): string {
+  return `${nextPrompt}
+
+LATEST TOOL RESULTS (step ${step}):
+${latest}
+
+Continue testing this hypothesis: call another tool, or reply with ONLY the verdict JSON.`;
 }
 
 export const VERDICT_NUDGE = `${PHASE.verdict} Stop calling tools now. Based only on the evidence above, reply with ONLY the JSON verdict: {"status":"supported|refuted|inconclusive","rationale":"...","evidenceIds":["ev-N"]}`;
@@ -120,7 +151,7 @@ function evidenceBlock(e: Evidence, maxRows: number): string {
   })}`;
 }
 
-export function synthesizeMessages(args: { question: string; hypotheses: (Hypothesis & { rationale?: string })[]; evidence: Evidence[] }) {
+export function synthesizeMessages(args: { question: string; hypotheses: (Hypothesis & { rationale?: string })[]; evidence: Evidence[]; entities?: GroundedEntities }) {
   return [
     {
       role: 'system' as const,
@@ -130,6 +161,8 @@ ${PHASE.synthesize} TASK: write the final answer as a RANKED list of causes (mos
 - Each claim: one sentence, quantitative, citing the evidence ids that contain its numbers.
 - Copy numbers exactly as they appear in rows, or state simple derived values (YoY %, differences, ratios) rounded to 1 decimal.
 - Say explicitly whether each cause is company-specific, sector-wide or macro.
+- Cite the period end date of each company figure (e.g. "FY ending 2024-02-03"), because fiscal-year labels differ between filers.
+- Never make a claim about a company listed as NOT IN THE DATA.
 - Include refuted hypotheses only as claims of what did NOT drive the change, if the evidence clearly shows it.
 - confidence: high = direct evidence and consistent across sources; medium = one source or indirect; low = suggestive.
 Reply with ONLY this JSON:
@@ -137,7 +170,7 @@ Reply with ONLY this JSON:
     },
     {
       role: 'user' as const,
-      content: `QUESTION: ${args.question}
+      content: `QUESTION: ${args.question}${formatEntities(args.entities)}
 HYPOTHESIS VERDICTS:
 ${args.hypotheses.map((h) => `HYPOTHESIS ${JSON.stringify({ id: h.id, statement: h.statement, status: h.status, rationale: h.rationale ?? '', evidenceIds: h.evidenceIds })}`).join('\n')}
 EVIDENCE:

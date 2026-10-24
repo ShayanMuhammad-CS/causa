@@ -199,8 +199,8 @@ describe('investigation loop', () => {
     const { inv, events } = await run({ llm, zetaris, memory: fakeMemory(), intent: fakeIntent() });
     const failed = events.find((e) => e.type === 'query_failed');
     expect(failed).toMatchObject({ type: 'query_failed', attempt: 1 });
-    // the next investigate call for that hypothesis must carry the error text in a tool message
-    const retryCall = llm.calls.find((c) => c.messages.some((m) => m.role === 'tool' && m.content.includes('Table or view not found')));
+    // the next investigate call for that hypothesis must carry the error text (Markovian: in the latest tool results)
+    const retryCall = llm.calls.find((c) => c.messages.some((m) => m.role === 'user' && m.content.includes('LATEST TOOL RESULTS') && m.content.includes('Table or view not found')));
     expect(retryCall).toBeDefined();
     expect(inv.evidence.length).toBeGreaterThan(0);
     expect(inv.status).toBe('done');

@@ -1,0 +1,232 @@
+event: contract
+data: {"type":"contract","contract":{"id":"da5ba234-ec17-4dbf-b348-22b4922d8a08","intent":{"intent":"explain_metric_change","entities":["Walmart","Target"],"metrics":["revenue","growth"],"timeRange":"FY2022","risk":"low","riskReasons":[]},"allowedTools":["zetaris.catalog","zetaris.query","memory.recall","memory.remember"],"budget":{"maxQueries":14,"maxLlmCalls":28,"maxSeconds":300},"stopConditions":["stop when every hypothesis is supported, refuted or inconclusive","stop when the query, LLM-call or time budget is exhausted","stop and fail on any statement that is not a single SELECT, SHOW, DESCRIBE or WITH","stop on any tool call outside allowedTools"],"issuedAt":"2026-10-24T15:17:27.230Z","signature":"8b763fb98014d39e10228bfb15dea2262b4e10698d21bfb997755e4cbe52f30d"}}
+id: 0
+
+event: world
+data: {"type":"world","entities":[{"id":"company:sec-cik:0000027419","name":"Target Corp","cik":"0000027419","ticker":"TGT","sic":"5331"},{"id":"company:sec-cik:0000104169","name":"Walmart Inc.","cik":"0000104169","ticker":"WMT","sic":"5331"}],"unknown":[]}
+id: 1
+
+event: thinking
+data: {"type":"thinking","text":"World Model: Target Corp (TGT, CIK 0000027419, SIC 5331), Walmart Inc. (WMT, CIK 0000104169, SIC 5331)"}
+id: 2
+
+event: recall
+data: {"type":"recall","hits":[]}
+id: 3
+
+event: thinking
+data: {"type":"thinking","text":"Schema retrieval (bm25): 7 catalog tables -> top 6: edgar.company_financials (1), worldbank.us_macro_indicators (0.5262), edgar.company_profile (0), company_dns.sic_codes_v4_table (0), company_dns.sic_codes_v4_compat_table (0), lightning.metastore.usl_demo.sic_edgar_usl.company (0)"}
+id: 4
+
+event: model_call
+data: {"type":"model_call","role":"planner","model":"causa/sample-analyst","provider":"sample","ms":0}
+id: 5
+
+event: thinking
+data: {"type":"thinking","text":"[plan] handled by causa/sample-analyst (deterministic, no LLM) via sample in 0ms (LLM call 1/28)"}
+id: 6
+
+event: hypothesis
+data: {"type":"hypothesis","hypothesis":{"id":"h-1","statement":"Company-specific: Target's revenue growth fell short of its SIC 5331 peers from fiscal_year 2022 to 2024 — refuted if Target's mean YoY growth is within 2 pp of the SIC 5331 peer median","status":"open","evidenceIds":[]}}
+id: 7
+
+event: hypothesis
+data: {"type":"hypothesis","hypothesis":{"id":"h-2","statement":"Sector-wide: the SIC 5331 industry (peers excluding Target) grew about as slowly as Target from fiscal_year 2022 to 2024 — refuted if the peer aggregate grew more than 2 pp a year faster than Target on average","status":"open","evidenceIds":[]}}
+id: 8
+
+event: hypothesis
+data: {"type":"hypothesis","hypothesis":{"id":"h-3","statement":"Macro: weak real consumer demand (inflation eroding real spending) explains the growth pattern from fiscal_year 2022 to 2024 — refuted if US real private consumption grew at least 1% a year on average","status":"open","evidenceIds":[]}}
+id: 9
+
+event: hypothesis
+data: {"type":"hypothesis","hypothesis":{"id":"h-4","statement":"Margin trade-off: Target gave up revenue growth to rebuild operating margin from fiscal_year 2022 to 2024 — refuted if Target's operating margin fell by 0.5 pp or more","status":"open","evidenceIds":[]}}
+id: 10
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":2}
+id: 11
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-1] handled by causa/sample-analyst (deterministic, no LLM) via sample in 2ms (LLM call 2/28)"}
+id: 12
+
+event: query_started
+data: {"type":"query_started","hypothesisId":"h-1","sql":"WITH rev AS (\n  SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd,\n         LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd,\n         LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year\n  FROM edgar.company_financials\n  WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT'))\n)\nSELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year, period_end, revenue_usd,\n       ROUND(100.0 * (revenue_usd - prev_revenue_usd) / prev_revenue_usd, 2) AS yoy_growth_pct\nFROM rev\nWHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year BETWEEN 2022 AND 2024\nORDER BY role, ticker, fiscal_year","purpose":"YoY revenue growth of TGT, WMT and SIC 5331 peers over the window"}
+id: 13
+
+event: evidence
+data: {"type":"evidence","evidence":{"id":"ev-1","hypothesisId":"h-1","purpose":"YoY revenue growth of TGT, WMT and SIC 5331 peers over the window","result":{"queryId":"80f4ea1f-680b-4684-8d9a-f039233de587","sql":"WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT')) ) SELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year, period_end, revenue_usd, ROUND(100.0 * (revenue_usd - prev_revenue_usd) / prev_revenue_usd, 2) AS yoy_growth_pct FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year BETWEEN 2022 AND 2024 ORDER BY role, ticker, fiscal_year LIMIT 200","columns":["role","ticker","fiscal_year","period_end","revenue_usd","yoy_growth_pct"],"rows":[["focus","TGT",2022,"2023-01-28",109120000000,2.94],["focus","TGT",2023,"2024-02-03",107412000000,-1.57],["focus","TGT",2024,"2025-02-01",106566000000,-0.79],["named","WMT",2022,"2023-01-31",611289000000,6.73],["named","WMT",2023,"2024-01-31",648125000000,6.03],["named","WMT",2024,"2025-01-31",680985000000,5.07],["sic_peer","COST",2022,"2022-08-28",226954000000,15.83],["sic_peer","COST",2023,"2023-09-03",242290000000,6.76],["sic_peer","COST",2024,"2024-09-01",254453000000,5.02],["sic_peer","DG",2022,"2023-02-03",37844863000,10.59],["sic_peer","DG",2023,"2024-02-02",38691609000,2.24],["sic_peer","DG",2024,"2025-01-31",40612308000,4.96]],"rowCount":12,"elapsedMs":9,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"12 row(s) x 6 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=TGT, fiscal_year=2022, period_end=2023-01-28, revenue_usd=109120000000, yoy_growth_pct=2.94 | role=focus, ticker=TGT, fiscal_year=2023, period_end=2024-02-03, revenue_usd=107412000000, yoy_growth_pct=-1.57 | role=focus, ticker=TGT, fiscal_year=2024, period_end=2025-02-01, revenue_usd=106566000000, yoy_growth_pct=-0.79 | ..."}}
+id: 14
+
+event: thinking
+data: {"type":"thinking","text":"World Model: 12 metric fact(s) from ev-1 recorded with provenance (query 80f4ea1f-680b-4684-8d9a-f039233de587)."}
+id: 15
+
+event: markov
+data: {"type":"markov","hypothesisId":"h-1","step":1,"tokensBounded":350,"tokensNaive":603}
+id: 16
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":2}
+id: 17
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-1] handled by causa/sample-analyst (deterministic, no LLM) via sample in 2ms (LLM call 3/28)"}
+id: 18
+
+event: thinking
+data: {"type":"thinking","text":"Markovian h-1: 1 step(s), ~350 bounded vs ~603 naive input tokens (42% saved, estimated)."}
+id: 19
+
+event: verdict
+data: {"type":"verdict","hypothesis":{"id":"h-1","statement":"Company-specific: Target's revenue growth fell short of its SIC 5331 peers from fiscal_year 2022 to 2024 — refuted if Target's mean YoY growth is within 2 pp of the SIC 5331 peer median","status":"supported","evidenceIds":["ev-1"]}}
+id: 20
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":1}
+id: 21
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-2] handled by causa/sample-analyst (deterministic, no LLM) via sample in 1ms (LLM call 4/28)"}
+id: 22
+
+event: query_started
+data: {"type":"query_started","hypothesisId":"h-2","sql":"WITH rev AS (\n  SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd,\n         LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd,\n         LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year\n  FROM edgar.company_financials\n  WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')))\n),\ny AS (SELECT * FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year > 2022 AND fiscal_year <= 2024)\nSELECT fiscal_year,\n       MAX(CASE WHEN ticker = 'TGT' THEN period_end END) AS focus_period_end,\n       ROUND(100.0 * (SUM(CASE WHEN ticker = 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END), 2) AS focus_yoy_growth_pct,\n       COUNT(CASE WHEN ticker <> 'TGT' THEN 1 END) AS peer_companies,\n       SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) AS peer_revenue_usd,\n       SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END) AS peer_prev_revenue_usd,\n       ROUND(100.0 * (SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END), 2) AS peer_yoy_growth_pct\nFROM y\nGROUP BY fiscal_year\nORDER BY fiscal_year","purpose":"Aggregate YoY revenue growth of SIC 5331 peers excluding TGT (same companies both years) vs TGT"}
+id: 23
+
+event: evidence
+data: {"type":"evidence","evidence":{"id":"ev-2","hypothesisId":"h-2","purpose":"Aggregate YoY revenue growth of SIC 5331 peers excluding TGT (same companies both years) vs TGT","result":{"queryId":"9e2d4fd8-1c6c-46a3-9386-9ea9837f914c","sql":"WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331'))) ), y AS (SELECT * FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year > 2022 AND fiscal_year <= 2024) SELECT fiscal_year, MAX(CASE WHEN ticker = 'TGT' THEN period_end END) AS focus_period_end, ROUND(100.0 * (SUM(CASE WHEN ticker = 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END), 2) AS focus_yoy_growth_pct, COUNT(CASE WHEN ticker <> 'TGT' THEN 1 END) AS peer_companies, SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) AS peer_revenue_usd, SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END) AS peer_prev_revenue_usd, ROUND(100.0 * (SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END), 2) AS peer_yoy_growth_pct FROM y GROUP BY fiscal_year ORDER BY fiscal_year LIMIT 200","columns":["fiscal_year","focus_period_end","focus_yoy_growth_pct","peer_companies","peer_revenue_usd","peer_prev_revenue_usd","peer_yoy_growth_pct"],"rows":[[2023,"2024-02-03",-1.57,3,929106609000,876087863000,6.05],[2024,"2025-02-01",-0.79,3,976050308000,929106609000,5.05]],"rowCount":2,"elapsedMs":13,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"2 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: fiscal_year=2023, focus_period_end=2024-02-03, focus_yoy_growth_pct=-1.57, peer_companies=3, peer_revenue_usd=929106609000, peer_prev_revenue_usd=876087863000, peer_yoy_growth_pct=6.05 | fiscal_year=2024, focus_period_end=2025-02-01, focus_yoy_growth_pct=-0.79, peer_companies=3, peer_revenue_usd=976050308000, peer_prev_revenue_usd=929106609000, peer_yoy_growth_pct=5.05"}}
+id: 24
+
+event: markov
+data: {"type":"markov","hypothesisId":"h-2","step":1,"tokensBounded":317,"tokensNaive":635}
+id: 25
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":0}
+id: 26
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-2] handled by causa/sample-analyst (deterministic, no LLM) via sample in 0ms (LLM call 5/28)"}
+id: 27
+
+event: thinking
+data: {"type":"thinking","text":"Markovian h-2: 1 step(s), ~317 bounded vs ~635 naive input tokens (50% saved, estimated)."}
+id: 28
+
+event: verdict
+data: {"type":"verdict","hypothesis":{"id":"h-2","statement":"Sector-wide: the SIC 5331 industry (peers excluding Target) grew about as slowly as Target from fiscal_year 2022 to 2024 — refuted if the peer aggregate grew more than 2 pp a year faster than Target on average","status":"refuted","evidenceIds":["ev-2"]}}
+id: 29
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":0}
+id: 30
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-3] handled by causa/sample-analyst (deterministic, no LLM) via sample in 0ms (LLM call 6/28)"}
+id: 31
+
+event: query_started
+data: {"type":"query_started","hypothesisId":"h-3","sql":"SELECT year,\n       ROUND(MAX(CASE WHEN indicator_id = 'FP.CPI.TOTL.ZG' THEN value END), 2) AS cpi_inflation_pct,\n       ROUND(MAX(CASE WHEN indicator_id = 'NE.CON.PRVT.KD.ZG' THEN value END), 2) AS real_consumption_growth_pct,\n       ROUND(MAX(CASE WHEN indicator_id = 'NY.GDP.MKTP.KD.ZG' THEN value END), 2) AS real_gdp_growth_pct\nFROM worldbank.us_macro_indicators\nWHERE year > 2022 AND year <= 2024\nGROUP BY year\nORDER BY year","purpose":"US CPI inflation, real private consumption growth and real GDP growth (World Bank) over the window"}
+id: 32
+
+event: evidence
+data: {"type":"evidence","evidence":{"id":"ev-3","hypothesisId":"h-3","purpose":"US CPI inflation, real private consumption growth and real GDP growth (World Bank) over the window","result":{"queryId":"46845620-69ff-461a-9524-4c572299a95d","sql":"SELECT year, ROUND(MAX(CASE WHEN indicator_id = 'FP.CPI.TOTL.ZG' THEN value END), 2) AS cpi_inflation_pct, ROUND(MAX(CASE WHEN indicator_id = 'NE.CON.PRVT.KD.ZG' THEN value END), 2) AS real_consumption_growth_pct, ROUND(MAX(CASE WHEN indicator_id = 'NY.GDP.MKTP.KD.ZG' THEN value END), 2) AS real_gdp_growth_pct FROM worldbank.us_macro_indicators WHERE year > 2022 AND year <= 2024 GROUP BY year ORDER BY year LIMIT 200","columns":["year","cpi_inflation_pct","real_consumption_growth_pct","real_gdp_growth_pct"],"rows":[[2023,4.12,2.57,2.93],[2024,2.95,2.95,2.79]],"rowCount":2,"elapsedMs":5,"source":["worldbank.us_macro_indicators"]},"summary":"2 row(s) x 4 col(s) from worldbank.us_macro_indicators: year=2023, cpi_inflation_pct=4.12, real_consumption_growth_pct=2.57, real_gdp_growth_pct=2.93 | year=2024, cpi_inflation_pct=2.95, real_consumption_growth_pct=2.95, real_gdp_growth_pct=2.79"}}
+id: 33
+
+event: markov
+data: {"type":"markov","hypothesisId":"h-3","step":1,"tokensBounded":285,"tokensNaive":363}
+id: 34
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":1}
+id: 35
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-3] handled by causa/sample-analyst (deterministic, no LLM) via sample in 1ms (LLM call 7/28)"}
+id: 36
+
+event: thinking
+data: {"type":"thinking","text":"Markovian h-3: 1 step(s), ~285 bounded vs ~363 naive input tokens (21% saved, estimated)."}
+id: 37
+
+event: verdict
+data: {"type":"verdict","hypothesis":{"id":"h-3","statement":"Macro: weak real consumer demand (inflation eroding real spending) explains the growth pattern from fiscal_year 2022 to 2024 — refuted if US real private consumption grew at least 1% a year on average","status":"refuted","evidenceIds":["ev-3"]}}
+id: 38
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":1}
+id: 39
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-4] handled by causa/sample-analyst (deterministic, no LLM) via sample in 1ms (LLM call 8/28)"}
+id: 40
+
+event: query_started
+data: {"type":"query_started","hypothesisId":"h-4","sql":"SELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year,\n       MAX(CASE WHEN concept = 'revenue' THEN period_end END) AS period_end,\n       MAX(CASE WHEN concept = 'revenue' THEN value_usd END) AS revenue_usd,\n       ROUND(100.0 * COALESCE(MAX(CASE WHEN concept = 'gross_profit' THEN value_usd END), MAX(CASE WHEN concept = 'revenue' THEN value_usd END) - MAX(CASE WHEN concept = 'cost_of_revenue' THEN value_usd END)) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS gross_margin_pct,\n       ROUND(100.0 * MAX(CASE WHEN concept = 'operating_income' THEN value_usd END) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS operating_margin_pct\nFROM edgar.company_financials\nWHERE (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT')) AND concept IN ('revenue', 'gross_profit', 'cost_of_revenue', 'operating_income')\n  AND fiscal_year BETWEEN 2022 AND 2024\nGROUP BY ticker, fiscal_year\nORDER BY role, ticker, fiscal_year","purpose":"Gross and operating margin of TGT, WMT and SIC 5331 peers over the window"}
+id: 41
+
+event: evidence
+data: {"type":"evidence","evidence":{"id":"ev-4","hypothesisId":"h-4","purpose":"Gross and operating margin of TGT, WMT and SIC 5331 peers over the window","result":{"queryId":"d05fd8e2-eb32-4ac8-aa18-8434f45938a7","sql":"SELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year, MAX(CASE WHEN concept = 'revenue' THEN period_end END) AS period_end, MAX(CASE WHEN concept = 'revenue' THEN value_usd END) AS revenue_usd, ROUND(100.0 * COALESCE(MAX(CASE WHEN concept = 'gross_profit' THEN value_usd END), MAX(CASE WHEN concept = 'revenue' THEN value_usd END) - MAX(CASE WHEN concept = 'cost_of_revenue' THEN value_usd END)) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS gross_margin_pct, ROUND(100.0 * MAX(CASE WHEN concept = 'operating_income' THEN value_usd END) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS operating_margin_pct FROM edgar.company_financials WHERE (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT')) AND concept IN ('revenue', 'gross_profit', 'cost_of_revenue', 'operating_income') AND fiscal_year BETWEEN 2022 AND 2024 GROUP BY ticker, fiscal_year ORDER BY role, ticker, fiscal_year LIMIT 200","columns":["role","ticker","fiscal_year","period_end","revenue_usd","gross_margin_pct","operating_margin_pct"],"rows":[["focus","TGT",2022,"2023-01-28",109120000000,24.57,3.53],["focus","TGT",2023,"2024-02-03",107412000000,27.54,5.31],["focus","TGT",2024,"2025-02-01",106566000000,28.21,5.22],["named","WMT",2022,"2023-01-31",611289000000,24.14,3.34],["named","WMT",2023,"2024-01-31",648125000000,24.38,4.17],["named","WMT",2024,"2025-01-31",680985000000,24.85,4.31],["sic_peer","COST",2022,"2022-08-28",226954000000,12.15,3.43],["sic_peer","COST",2023,"2023-09-03",242290000000,12.26,3.35],["sic_peer","COST",2024,"2024-09-01",254453000000,12.61,3.65],["sic_peer","DG",2022,"2023-02-03",37844863000,31.23,8.79],["sic_peer","DG",2023,"2024-02-02",38691609000,30.29,6.32],["sic_peer","DG",2024,"2025-01-31",40612308000,29.59,4.22]],"rowCount":12,"elapsedMs":9,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"12 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=TGT, fiscal_year=2022, period_end=2023-01-28, revenue_usd=109120000000, gross_margin_pct=24.57, operating_margin_pct=3.53 | role=focus, ticker=TGT, fiscal_year=2023, period_end=2024-02-03, revenue_usd=107412000000, gross_margin_pct=27.54, operating_margin_pct=5.31 | role=focus, ticker=TGT, fiscal_year=2024, period_end=2025-02-01, revenue_usd=106566000000, gross_margin_pct=28.21, operating_margin_pct=5.2"}}
+id: 42
+
+event: thinking
+data: {"type":"thinking","text":"World Model: 36 metric fact(s) from ev-4 recorded with provenance (query d05fd8e2-eb32-4ac8-aa18-8434f45938a7)."}
+id: 43
+
+event: markov
+data: {"type":"markov","hypothesisId":"h-4","step":1,"tokensBounded":346,"tokensNaive":694}
+id: 44
+
+event: model_call
+data: {"type":"model_call","role":"sql","model":"causa/sample-analyst","provider":"sample","ms":1}
+id: 45
+
+event: thinking
+data: {"type":"thinking","text":"[investigate h-4] handled by causa/sample-analyst (deterministic, no LLM) via sample in 1ms (LLM call 9/28)"}
+id: 46
+
+event: thinking
+data: {"type":"thinking","text":"Markovian h-4: 1 step(s), ~346 bounded vs ~694 naive input tokens (50% saved, estimated)."}
+id: 47
+
+event: verdict
+data: {"type":"verdict","hypothesis":{"id":"h-4","statement":"Margin trade-off: Target gave up revenue growth to rebuild operating margin from fiscal_year 2022 to 2024 — refuted if Target's operating margin fell by 0.5 pp or more","status":"supported","evidenceIds":["ev-4"]}}
+id: 48
+
+event: model_call
+data: {"type":"model_call","role":"synthesis","model":"causa/sample-analyst","provider":"sample","ms":2}
+id: 49
+
+event: thinking
+data: {"type":"thinking","text":"[synthesize] handled by causa/sample-analyst (deterministic, no LLM) via sample in 2ms (LLM call 10/28)"}
+id: 50
+
+event: model_call
+data: {"type":"model_call","role":"critic","model":"causa/sample-analyst","provider":"sample","ms":4}
+id: 51
+
+event: thinking
+data: {"type":"thinking","text":"[critic] handled by causa/sample-analyst (deterministic, no LLM) via sample in 4ms (LLM call 11/28)"}
+id: 52
+
+event: thinking
+data: {"type":"thinking","text":"Critic dropped a claim: \"Walmart (WMT) revenue went from $611.29B (FY ending 2023-01-31) to $680.99B (FY ending 2025-01-31), a 11.4% change; YoY growth was 6.03% (FY ending 2024-01-31), 5.07% (FY ending 2025-01-31) [ev-1].\" (Sample critic (deterministic): -31, -31, -31, -31 not found in the cited rows.)"}
+id: 53
+
+event: answer
+data: {"type":"answer","answer":{"summary":"Supported by the data: Company-specific: Target's revenue growth fell short of its SIC 5331 peers from fiscal_year 2022 to 2024; Margin trade-off: Target gave up revenue growth to rebuild operating margin from fiscal_year 2022 to 2024. Refuted: Sector-wide, Macro. Company figures cite each fiscal period end date (edgar fiscal_year = calendar year in which most of the fiscal year falls). Produced by Causa's deterministic sample analyst (SAMPLE_MODE: rule-based verdicts over real SEC EDGAR / World Bank rows, no LLM).","claims":[{"text":"Target (TGT) revenue went from $109.12B (FY ending 2023-01-28) to $106.57B (FY ending 2025-02-01), a -2.3% change; YoY growth was -1.57% (FY ending 2024-02-03), -0.79% (FY ending 2025-02-01) [ev-1].","confidence":"high","evidenceIds":["ev-1"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 6 number(s) re-checked against the cited rows."},{"text":"Company-specific: over fiscal_year 2023, 2024 Target (TGT) grew -1.57% and -0.79% YoY while its SIC 5331 peers grew faster: WMT 6.03% and 5.07%; COST 6.76% and 5.02%; DG 2.24% and 4.96% [ev-1].","confidence":"high","evidenceIds":["ev-1"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 8 number(s) re-checked against the cited rows."},{"text":"Margin trade-off: Target (TGT)'s operating margin rose from 3.53% (FY ending 2023-01-28) to 5.22% (FY ending 2025-02-01) while its revenue growth lagged, consistent with prioritising profitability over sales [ev-4].","confidence":"medium","evidenceIds":["ev-4"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 3 number(s) re-checked against the cited rows."},{"text":"Not sector-wide: Target (TGT)'s SIC 5331 peers excluding TGT grew 6.05% (fiscal_year 2023), 5.05% (fiscal_year 2024) in aggregate, versus TGT's -1.57% (fiscal_year 2023), -0.79% (fiscal_year 2024), a gap of 5.84 percentage points in fiscal_year 2024 [ev-2].","confidence":"medium","evidenceIds":["ev-2"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 5 number(s) re-checked against the cited rows."},{"text":"Not macro: US real private consumption grew 2.57% in 2023, 2.95% in 2024 while CPI inflation was 4.12% in 2023, 2.95% in 2024, so consumer demand was still expanding in real terms [ev-3].","confidence":"medium","evidenceIds":["ev-3"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 4 number(s) re-checked against the cited rows."}],"models":["causa/sample-analyst"]}}
+id: 54
+
+event: remembered
+data: {"type":"remembered","ids":["mem-1","mem-2","mem-3","mem-4","mem-5"]}
+id: 55
+
+event: thinking
+data: {"type":"thinking","text":"Budget used: {\"queries\":\"4/14\",\"llmCalls\":\"11/28\",\"seconds\":\"0.4/300\"}. Models: causa/sample-analyst x11"}
+id: 56
+
+event: done
+data: {"type":"done","investigation":{"id":"inv-5","question":"Why did Target's revenue growth lag Walmart's from FY2022 to FY2024?","contract":{"id":"da5ba234-ec17-4dbf-b348-22b4922d8a08","intent":{"intent":"explain_metric_change","entities":["Walmart","Target"],"metrics":["revenue","growth"],"timeRange":"FY2022","risk":"low","riskReasons":[]},"allowedTools":["zetaris.catalog","zetaris.query","memory.recall","memory.remember"],"budget":{"maxQueries":14,"maxLlmCalls":28,"maxSeconds":300},"stopConditions":["stop when every hypothesis is supported, refuted or inconclusive","stop when the query, LLM-call or time budget is exhausted","stop and fail on any statement that is not a single SELECT, SHOW, DESCRIBE or WITH","stop on any tool call outside allowedTools"],"issuedAt":"2026-10-24T15:17:27.230Z","signature":"8b763fb98014d39e10228bfb15dea2262b4e10698d21bfb997755e4cbe52f30d"},"recalled":[],"hypotheses":[{"id":"h-1","statement":"Company-specific: Target's revenue growth fell short of its SIC 5331 peers from fiscal_year 2022 to 2024 — refuted if Target's mean YoY growth is within 2 pp of the SIC 5331 peer median","status":"supported","evidenceIds":["ev-1"]},{"id":"h-2","statement":"Sector-wide: the SIC 5331 industry (peers excluding Target) grew about as slowly as Target from fiscal_year 2022 to 2024 — refuted if the peer aggregate grew more than 2 pp a year faster than Target on average","status":"refuted","evidenceIds":["ev-2"]},{"id":"h-3","statement":"Macro: weak real consumer demand (inflation eroding real spending) explains the growth pattern from fiscal_year 2022 to 2024 — refuted if US real private consumption grew at least 1% a year on average","status":"refuted","evidenceIds":["ev-3"]},{"id":"h-4","statement":"Margin trade-off: Target gave up revenue growth to rebuild operating margin from fiscal_year 2022 to 2024 — refuted if Target's operating margin fell by 0.5 pp or more","status":"supported","evidenceIds":["ev-4"]}],"evidence":[{"id":"ev-1","hypothesisId":"h-1","purpose":"YoY revenue growth of TGT, WMT and SIC 5331 peers over the window","result":{"queryId":"80f4ea1f-680b-4684-8d9a-f039233de587","sql":"WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT')) ) SELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year, period_end, revenue_usd, ROUND(100.0 * (revenue_usd - prev_revenue_usd) / prev_revenue_usd, 2) AS yoy_growth_pct FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year BETWEEN 2022 AND 2024 ORDER BY role, ticker, fiscal_year LIMIT 200","columns":["role","ticker","fiscal_year","period_end","revenue_usd","yoy_growth_pct"],"rows":[["focus","TGT",2022,"2023-01-28",109120000000,2.94],["focus","TGT",2023,"2024-02-03",107412000000,-1.57],["focus","TGT",2024,"2025-02-01",106566000000,-0.79],["named","WMT",2022,"2023-01-31",611289000000,6.73],["named","WMT",2023,"2024-01-31",648125000000,6.03],["named","WMT",2024,"2025-01-31",680985000000,5.07],["sic_peer","COST",2022,"2022-08-28",226954000000,15.83],["sic_peer","COST",2023,"2023-09-03",242290000000,6.76],["sic_peer","COST",2024,"2024-09-01",254453000000,5.02],["sic_peer","DG",2022,"2023-02-03",37844863000,10.59],["sic_peer","DG",2023,"2024-02-02",38691609000,2.24],["sic_peer","DG",2024,"2025-01-31",40612308000,4.96]],"rowCount":12,"elapsedMs":9,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"12 row(s) x 6 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=TGT, fiscal_year=2022, period_end=2023-01-28, revenue_usd=109120000000, yoy_growth_pct=2.94 | role=focus, ticker=TGT, fiscal_year=2023, period_end=2024-02-03, revenue_usd=107412000000, yoy_growth_pct=-1.57 | role=focus, ticker=TGT, fiscal_year=2024, period_end=2025-02-01, revenue_usd=106566000000, yoy_growth_pct=-0.79 | ..."},{"id":"ev-2","hypothesisId":"h-2","purpose":"Aggregate YoY revenue growth of SIC 5331 peers excluding TGT (same companies both years) vs TGT","result":{"queryId":"9e2d4fd8-1c6c-46a3-9386-9ea9837f914c","sql":"WITH rev AS ( SELECT ticker, fiscal_year, period_end, value_usd AS revenue_usd, LAG(value_usd) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_revenue_usd, LAG(fiscal_year) OVER (PARTITION BY ticker ORDER BY fiscal_year) AS prev_fiscal_year FROM edgar.company_financials WHERE concept = 'revenue' AND (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331'))) ), y AS (SELECT * FROM rev WHERE prev_fiscal_year = fiscal_year - 1 AND fiscal_year > 2022 AND fiscal_year <= 2024) SELECT fiscal_year, MAX(CASE WHEN ticker = 'TGT' THEN period_end END) AS focus_period_end, ROUND(100.0 * (SUM(CASE WHEN ticker = 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker = 'TGT' THEN prev_revenue_usd END), 2) AS focus_yoy_growth_pct, COUNT(CASE WHEN ticker <> 'TGT' THEN 1 END) AS peer_companies, SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) AS peer_revenue_usd, SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END) AS peer_prev_revenue_usd, ROUND(100.0 * (SUM(CASE WHEN ticker <> 'TGT' THEN revenue_usd END) - SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END)) / SUM(CASE WHEN ticker <> 'TGT' THEN prev_revenue_usd END), 2) AS peer_yoy_growth_pct FROM y GROUP BY fiscal_year ORDER BY fiscal_year LIMIT 200","columns":["fiscal_year","focus_period_end","focus_yoy_growth_pct","peer_companies","peer_revenue_usd","peer_prev_revenue_usd","peer_yoy_growth_pct"],"rows":[[2023,"2024-02-03",-1.57,3,929106609000,876087863000,6.05],[2024,"2025-02-01",-0.79,3,976050308000,929106609000,5.05]],"rowCount":2,"elapsedMs":13,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"2 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: fiscal_year=2023, focus_period_end=2024-02-03, focus_yoy_growth_pct=-1.57, peer_companies=3, peer_revenue_usd=929106609000, peer_prev_revenue_usd=876087863000, peer_yoy_growth_pct=6.05 | fiscal_year=2024, focus_period_end=2025-02-01, focus_yoy_growth_pct=-0.79, peer_companies=3, peer_revenue_usd=976050308000, peer_prev_revenue_usd=929106609000, peer_yoy_growth_pct=5.05"},{"id":"ev-3","hypothesisId":"h-3","purpose":"US CPI inflation, real private consumption growth and real GDP growth (World Bank) over the window","result":{"queryId":"46845620-69ff-461a-9524-4c572299a95d","sql":"SELECT year, ROUND(MAX(CASE WHEN indicator_id = 'FP.CPI.TOTL.ZG' THEN value END), 2) AS cpi_inflation_pct, ROUND(MAX(CASE WHEN indicator_id = 'NE.CON.PRVT.KD.ZG' THEN value END), 2) AS real_consumption_growth_pct, ROUND(MAX(CASE WHEN indicator_id = 'NY.GDP.MKTP.KD.ZG' THEN value END), 2) AS real_gdp_growth_pct FROM worldbank.us_macro_indicators WHERE year > 2022 AND year <= 2024 GROUP BY year ORDER BY year LIMIT 200","columns":["year","cpi_inflation_pct","real_consumption_growth_pct","real_gdp_growth_pct"],"rows":[[2023,4.12,2.57,2.93],[2024,2.95,2.95,2.79]],"rowCount":2,"elapsedMs":5,"source":["worldbank.us_macro_indicators"]},"summary":"2 row(s) x 4 col(s) from worldbank.us_macro_indicators: year=2023, cpi_inflation_pct=4.12, real_consumption_growth_pct=2.57, real_gdp_growth_pct=2.93 | year=2024, cpi_inflation_pct=2.95, real_consumption_growth_pct=2.95, real_gdp_growth_pct=2.79"},{"id":"ev-4","hypothesisId":"h-4","purpose":"Gross and operating margin of TGT, WMT and SIC 5331 peers over the window","result":{"queryId":"d05fd8e2-eb32-4ac8-aa18-8434f45938a7","sql":"SELECT CASE WHEN ticker = 'TGT' THEN 'focus' WHEN ticker IN ('WMT') THEN 'named' ELSE 'sic_peer' END AS role, ticker, fiscal_year, MAX(CASE WHEN concept = 'revenue' THEN period_end END) AS period_end, MAX(CASE WHEN concept = 'revenue' THEN value_usd END) AS revenue_usd, ROUND(100.0 * COALESCE(MAX(CASE WHEN concept = 'gross_profit' THEN value_usd END), MAX(CASE WHEN concept = 'revenue' THEN value_usd END) - MAX(CASE WHEN concept = 'cost_of_revenue' THEN value_usd END)) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS gross_margin_pct, ROUND(100.0 * MAX(CASE WHEN concept = 'operating_income' THEN value_usd END) / MAX(CASE WHEN concept = 'revenue' THEN value_usd END), 2) AS operating_margin_pct FROM edgar.company_financials WHERE (ticker = 'TGT' OR ticker IN (SELECT ticker FROM edgar.company_profile WHERE sic_code IN ('5331')) OR ticker IN ('WMT')) AND concept IN ('revenue', 'gross_profit', 'cost_of_revenue', 'operating_income') AND fiscal_year BETWEEN 2022 AND 2024 GROUP BY ticker, fiscal_year ORDER BY role, ticker, fiscal_year LIMIT 200","columns":["role","ticker","fiscal_year","period_end","revenue_usd","gross_margin_pct","operating_margin_pct"],"rows":[["focus","TGT",2022,"2023-01-28",109120000000,24.57,3.53],["focus","TGT",2023,"2024-02-03",107412000000,27.54,5.31],["focus","TGT",2024,"2025-02-01",106566000000,28.21,5.22],["named","WMT",2022,"2023-01-31",611289000000,24.14,3.34],["named","WMT",2023,"2024-01-31",648125000000,24.38,4.17],["named","WMT",2024,"2025-01-31",680985000000,24.85,4.31],["sic_peer","COST",2022,"2022-08-28",226954000000,12.15,3.43],["sic_peer","COST",2023,"2023-09-03",242290000000,12.26,3.35],["sic_peer","COST",2024,"2024-09-01",254453000000,12.61,3.65],["sic_peer","DG",2022,"2023-02-03",37844863000,31.23,8.79],["sic_peer","DG",2023,"2024-02-02",38691609000,30.29,6.32],["sic_peer","DG",2024,"2025-01-31",40612308000,29.59,4.22]],"rowCount":12,"elapsedMs":9,"source":["edgar.company_financials","edgar.company_profile"]},"summary":"12 row(s) x 7 col(s) from edgar.company_financials, edgar.company_profile: role=focus, ticker=TGT, fiscal_year=2022, period_end=2023-01-28, revenue_usd=109120000000, gross_margin_pct=24.57, operating_margin_pct=3.53 | role=focus, ticker=TGT, fiscal_year=2023, period_end=2024-02-03, revenue_usd=107412000000, gross_margin_pct=27.54, operating_margin_pct=5.31 | role=focus, ticker=TGT, fiscal_year=2024, period_end=2025-02-01, revenue_usd=106566000000, gross_margin_pct=28.21, operating_margin_pct=5.2"}],"rememberedIds":["mem-1","mem-2","mem-3","mem-4","mem-5"],"status":"done","startedAt":"2026-10-24T15:17:27.222Z","answer":{"summary":"Supported by the data: Company-specific: Target's revenue growth fell short of its SIC 5331 peers from fiscal_year 2022 to 2024; Margin trade-off: Target gave up revenue growth to rebuild operating margin from fiscal_year 2022 to 2024. Refuted: Sector-wide, Macro. Company figures cite each fiscal period end date (edgar fiscal_year = calendar year in which most of the fiscal year falls). Produced by Causa's deterministic sample analyst (SAMPLE_MODE: rule-based verdicts over real SEC EDGAR / World Bank rows, no LLM).","claims":[{"text":"Target (TGT) revenue went from $109.12B (FY ending 2023-01-28) to $106.57B (FY ending 2025-02-01), a -2.3% change; YoY growth was -1.57% (FY ending 2024-02-03), -0.79% (FY ending 2025-02-01) [ev-1].","confidence":"high","evidenceIds":["ev-1"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 6 number(s) re-checked against the cited rows."},{"text":"Company-specific: over fiscal_year 2023, 2024 Target (TGT) grew -1.57% and -0.79% YoY while its SIC 5331 peers grew faster: WMT 6.03% and 5.07%; COST 6.76% and 5.02%; DG 2.24% and 4.96% [ev-1].","confidence":"high","evidenceIds":["ev-1"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 8 number(s) re-checked against the cited rows."},{"text":"Margin trade-off: Target (TGT)'s operating margin rose from 3.53% (FY ending 2023-01-28) to 5.22% (FY ending 2025-02-01) while its revenue growth lagged, consistent with prioritising profitability over sales [ev-4].","confidence":"medium","evidenceIds":["ev-4"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 3 number(s) re-checked against the cited rows."},{"text":"Not sector-wide: Target (TGT)'s SIC 5331 peers excluding TGT grew 6.05% (fiscal_year 2023), 5.05% (fiscal_year 2024) in aggregate, versus TGT's -1.57% (fiscal_year 2023), -0.79% (fiscal_year 2024), a gap of 5.84 percentage points in fiscal_year 2024 [ev-2].","confidence":"medium","evidenceIds":["ev-2"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 5 number(s) re-checked against the cited rows."},{"text":"Not macro: US real private consumption grew 2.57% in 2023, 2.95% in 2024 while CPI inflation was 4.12% in 2023, 2.95% in 2024, so consumer demand was still expanding in real terms [ev-3].","confidence":"medium","evidenceIds":["ev-3"],"verified":true,"criticNote":"Critic: Sample critic (deterministic): 4 number(s) re-checked against the cited rows."}],"models":["causa/sample-analyst"]},"finishedAt":"2026-10-24T15:17:27.587Z"}}
+id: 57
+

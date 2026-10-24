@@ -137,6 +137,22 @@ export function createApp(opts: AppOptions): Hono {
     }
   });
 
+  // Meterless World Model: grounded companies and the event trail (who/what/which query) behind each entity.
+  app.get('/api/world', (c) => {
+    if (!deps.world) return c.json({ error: 'World Model not enabled' }, 404);
+    const snap = deps.world.snapshot();
+    return c.json({ companies: snap.companies, counts: snap.counts, events: snap.events, fingerprint: snap.fingerprint });
+  });
+
+  app.get('/api/world/:entityId/history', (c) => {
+    const world = deps.world;
+    if (!world) return c.json({ error: 'World Model not enabled' }, 404);
+    const key = decodeURIComponent(c.req.param('entityId'));
+    const entity = world.snapshot().companies.find((x) => x.id === key) ?? world.resolveEntity(key);
+    if (!entity) return c.json({ error: `unknown World Model entity '${key}'` }, 404);
+    return c.json({ entity, facts: world.factsFor(entity.id), history: world.history(entity.id) });
+  });
+
   app.get('/api/health', async (c) => {
     const llmHealth = (deps.llm as { health?: () => Promise<Health> }).health;
     const [zetaris, llm, memory] = await Promise.all([
@@ -165,7 +181,7 @@ export async function main() {
   const app = createApp({ store, deps, agentConfig: deps.agentConfig, corsOrigins: ['http://localhost:5173', ...extraOrigins] });
   const port = Number(process.env.PORT) || 8700;
   const server = serve({ fetch: app.fetch, port }, () =>
-    console.log(`[causa] listening on http://localhost:${port} (llm=${deps.llm.provider}, model=${deps.llm.modelId})`),
+    console.log(`[causa] listening on http://localhost:${port} (data=${deps.dataMode}, model=${deps.modelMode}: ${deps.modelDetail})`),
   );
   const shutdown = async () => {
     await store.flush();
