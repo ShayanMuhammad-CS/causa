@@ -121,7 +121,7 @@ export interface Investigation {
   recalled: MemoryHit[];
   hypotheses: Hypothesis[];
   evidence: Evidence[];
-  answer?: { summary: string; claims: Claim[] };
+  answer?: { summary: string; claims: Claim[]; models?: string[] };
   rememberedIds: string[];
   status: 'running' | 'done' | 'failed' | 'blocked';
   error?: string;
@@ -138,6 +138,12 @@ export type InvestigationEvent =
   | { type: 'evidence'; evidence: Evidence }
   | { type: 'query_failed'; hypothesisId: string; sql: string; error: string; attempt: number }
   | { type: 'thinking'; text: string }
+  // Which model handled each LLM call (NVIDIA award evidence: "show which model handled the request")
+  | { type: 'model_call'; role: 'intent' | 'planner' | 'sql' | 'verdict' | 'synthesis' | 'critic'; model: string; provider: 'meterless-nightshift' | 'nvidia-direct' | 'sample'; ms: number }
+  // Meterless World Model: entities grounded before investigating (unknown names are refused, not invented)
+  | { type: 'world'; entities: { id: string; name: string; cik?: string; ticker?: string; sic?: string }[]; unknown: string[] }
+  // Meterless Markovian: bounded carried context per reasoning step vs naive full history (engine's token estimates)
+  | { type: 'markov'; hypothesisId: string; step: number; tokensBounded: number; tokensNaive: number }
   | { type: 'verdict'; hypothesis: Hypothesis }
   | { type: 'answer'; answer: NonNullable<Investigation['answer']> }
   | { type: 'remembered'; ids: string[] }
