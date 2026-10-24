@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { ExecutionContract, Hypothesis, MemoryHit } from '@causa/types';
 import { api } from '../api';
-import { Meter, Tick, trunc } from './bits';
+import type { MarkovStep } from '../state';
+import { Cite, Meter, Tick, trunc } from './bits';
+import { MarkovMeter, savingPct } from './Models';
 
 export function ContractBadge({ contract, queries, llmCalls, seconds, live }: {
   contract?: ExecutionContract; queries: number; llmCalls: number; seconds: number; live: boolean;
@@ -119,34 +121,44 @@ export function Remembered({ ids, onAudit }: { ids: string[]; onAudit: (id: stri
   );
 }
 
-const COLS: { status: Hypothesis['status']; label: string; hint: string }[] = [
-  { status: 'open', label: 'Open', hint: 'being tested' },
-  { status: 'supported', label: 'Supported', hint: 'evidence agrees' },
-  { status: 'refuted', label: 'Refuted', hint: 'evidence disagrees' },
-  { status: 'inconclusive', label: 'Inconclusive', hint: 'not enough to say' },
-];
+const STATUS: Record<Hypothesis['status'], { label: string; hint: string }> = {
+  open: { label: 'Open', hint: 'being tested' },
+  supported: { label: 'Supported', hint: 'evidence agrees' },
+  refuted: { label: 'Refuted', hint: 'evidence disagrees' },
+  inconclusive: { label: 'Inconclusive', hint: 'not enough to say' },
+};
 
-export function HypothesisBoard({ hypotheses, active }: { hypotheses: Hypothesis[]; active: boolean }) {
+export function HypothesisBoard({ hypotheses, active, markov }: { hypotheses: Hypothesis[]; active: boolean; markov: Record<string, MarkovStep[]> }) {
+  const all = Object.values(markov).flat();
+  const pct = savingPct(all);
+  const counts = (['supported', 'refuted', 'inconclusive', 'open'] as const).map(st => [st, hypotheses.filter(h => h.status === st).length] as const).filter(([, n]) => n > 0);
   return (
-    <section className="board" aria-label="Hypothesis board">
-      {COLS.map(c => {
-        const items = hypotheses.filter(h => h.status === c.status);
-        return (
-          <div key={c.status} className={`col col-${c.status}`}>
-            <h2 className="col-head"><span>{c.label}</span><span className="num count">{items.length}</span></h2>
-            <ul>
-              {items.map(h => (
-                <li key={`${h.id}-${h.status}`} className="hcard">
-                  <span className="hid mono">{h.id}</span>
-                  <p>{h.statement}</p>
-                  {h.evidenceIds.length > 0 && <span className="small muted">{h.evidenceIds.length} evidence {h.evidenceIds.length === 1 ? 'row set' : 'row sets'}</span>}
-                </li>
-              ))}
-              {items.length === 0 && <li className="empty small muted">{active && c.status === 'open' && hypotheses.length === 0 ? 'Nemotron is proposing hypotheses…' : c.hint}</li>}
-            </ul>
-          </div>
-        );
-      })}
+    <section className="board" aria-label="Hypotheses">
+      <div className="sec-head">
+        <h2>Competing hypotheses</h2>
+        <span className="src">{counts.map(([st, n]) => `${n} ${STATUS[st].label.toLowerCase()}`).join(', ')}</span>
+        {all.length > 0 && (
+          <span className="mk-total" title="Tokens carried between reasoning steps, summed over all hypotheses (engine estimates)">
+            Context (Meterless Markovian): <b>{pct > 0 ? `−${pct}% tokens` : 'bounded'}</b>
+          </span>
+        )}
+      </div>
+      <ul className="hyps">
+        {hypotheses.map(h => (
+          <li key={`${h.id}-${h.status}`} className={`hrow col-${h.status}`}>
+            <div className="hmain">
+              <div className="hhead">
+                <span className={`pill hs-${h.status}`}>{h.status === 'open' && active && <span className="dot" />}{STATUS[h.status].label}</span>
+                <span className="hid mono">{h.id}</span>
+                {h.evidenceIds.length > 0 && <span className="small muted">{h.evidenceIds.map(id => <Cite key={id} id={id} />)}</span>}
+              </div>
+              <p>{h.statement}</p>
+            </div>
+            <MarkovMeter steps={markov[h.id] ?? []} />
+          </li>
+        ))}
+        {hypotheses.length === 0 && <li className="empty muted">{active ? 'Nemotron is proposing competing hypotheses…' : 'No hypotheses were proposed.'}</li>}
+      </ul>
     </section>
   );
 }

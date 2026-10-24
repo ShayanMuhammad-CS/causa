@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { Claim, Evidence } from '@causa/types';
 import type { View } from '../state';
 import { Cite, Tick, jumpToEvidence, trunc } from './bits';
+import { ModelChip } from './Models';
 
 const LABEL = { high: 'High confidence', medium: 'Medium confidence', low: 'Low confidence' } as const;
 
-export function AnswerPanel({ answer }: { answer: NonNullable<View['answer']> }) {
+export function AnswerPanel({ answer, via }: { answer: NonNullable<View['answer']>; via?: string }) {
   const claims = answer.claims;
   return (
     <section className="answer" aria-label="Answer">
@@ -14,6 +15,13 @@ export function AnswerPanel({ answer }: { answer: NonNullable<View['answer']> })
       <ol className="claims">
         {claims.map((c, i) => <ClaimRow key={i} c={c} n={i + 1} />)}
       </ol>
+      {answer.models && answer.models.length > 0 && (
+        <p className="models-used">
+          <span className="small muted">Models used:</span>
+          {answer.models.map(m => <ModelChip key={m} model={m} />)}
+          {via && <span className="small muted">{via}</span>}
+        </p>
+      )}
     </section>
   );
 }

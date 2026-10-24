@@ -45,32 +45,59 @@ const claims = [
   { text: 'The lag is company-specific, not sector-wide: variety-store peers grew 7-12% over the same period while Target shrank 2.3%.', confidence: 'high', evidenceIds: ['ev-4', 'ev-1'], verified: true },
   { text: "Food inflation inflated Walmart's top line (food-at-home CPI +11.4% in 2022), but it explains only part of the 13.2% gap.", confidence: 'medium', evidenceIds: ['ev-3'], verified: false, criticNote: 'Downgraded from high: CPI is a national series and the evidence has no Walmart grocery sales to quantify the effect.' },
 ];
-const answer = { summary: "Target's growth lagged Walmart's mainly because Target is exposed to discretionary categories that shrank, while Walmart's grocery base held up. Peer data shows this is a company-specific gap.", claims };
+// MOCK DATA: model ids, latencies and token counts below are invented for the demo replay.
+const NANO = 'nvidia/nemotron-mock-nano', SUPER = 'nvidia/nemotron-mock-super';
+const mc = (role, model, ms) => ({ type: 'model_call', role, model, provider: 'meterless-nightshift', ms });
+const world = { type: 'world', unknown: ['Target Australia'], entities: [
+  { id: 'mock-target', name: 'Target Corp', cik: '0000027419', ticker: 'TGT', sic: '5331' },
+  { id: 'mock-walmart', name: 'Walmart Inc', cik: '0000104169', ticker: 'WMT', sic: '5331' } ] };
+const mk = (hypothesisId, step, tokensBounded, tokensNaive) => ({ type: 'markov', hypothesisId, step, tokensBounded, tokensNaive });
+const answer = { models: [SUPER, NANO], summary: "Target's growth lagged Walmart's mainly because Target is exposed to discretionary categories that shrank, while Walmart's grocery base held up. Peer data shows this is a company-specific gap.", claims };
 const inv = { id: 'inv-demo', question: "Why did Target's revenue growth lag Walmart's from FY2022 to FY2024?", contract, recalled: hits,
   hypotheses: [hv(0, 'supported', ['ev-2']), hv(1, 'inconclusive', ['ev-3']), hv(2, 'refuted', ['ev-1', 'ev-4'])],
   evidence: [ev1, ev2, ev3, ev4], answer, rememberedIds: ['mem-90', 'mem-91'], status: 'done', startedAt: '2026-10-24T09:14:02Z', finishedAt: '2026-10-24T09:14:41Z' };
 const T = [];
 let t = 0; const at = (d, event) => { t += d; T.push({ t, event }); };
 at(300, { type: 'contract', contract });
+at(150, mc('intent', NANO, 640));
+at(250, world);
 at(900, { type: 'recall', hits });
 at(1100, { type: 'thinking', text: 'Reading Zetaris catalog: sic_edgar_usl, SEC_DATA.edgar, MACRO.cpi_rest, company_dns.sic. Proposing three competing hypotheses.' });
+at(300, mc('planner', SUPER, 4120));
 for (const h of hyps) at(500, { type: 'hypothesis', hypothesis: h });
-at(900, { type: 'query_started', hypothesisId: 'h-3', sql: S1, purpose: ev1.purpose });
+at(300, mc('sql', SUPER, 1830));
+at(600, { type: 'query_started', hypothesisId: 'h-3', sql: S1, purpose: ev1.purpose });
 at(1400, { type: 'evidence', evidence: ev1 });
-at(700, { type: 'query_started', hypothesisId: 'h-1', sql: S2bad, purpose: ev2.purpose });
+at(100, mk('h-3', 1, 820, 820));
+at(300, mc('sql', SUPER, 1710));
+at(400, { type: 'query_started', hypothesisId: 'h-1', sql: S2bad, purpose: ev2.purpose });
 at(1000, { type: 'query_failed', hypothesisId: 'h-1', sql: S2bad, attempt: 1, error: 'Table or view not found: sic_edgar_usl.target_segments (did you mean SEC_DATA.edgar.target_segment_facts?)' });
 at(1200, { type: 'thinking', text: 'Query failed: table not found. Re-reading catalog, switching to SEC_DATA.edgar.target_segment_facts.' });
-at(600, { type: 'query_started', hypothesisId: 'h-1', sql: S2, purpose: ev2.purpose });
+at(100, mc('sql', SUPER, 1490));
+at(500, { type: 'query_started', hypothesisId: 'h-1', sql: S2, purpose: ev2.purpose });
 at(1500, { type: 'evidence', evidence: ev2 });
-at(500, { type: 'verdict', hypothesis: hv(0, 'supported', ['ev-2']) });
-at(900, { type: 'query_started', hypothesisId: 'h-2', sql: S3, purpose: ev3.purpose });
+at(100, mk('h-1', 1, 790, 790));
+at(300, mc('verdict', NANO, 880));
+at(200, { type: 'verdict', hypothesis: hv(0, 'supported', ['ev-2']) });
+at(50, mk('h-1', 2, 860, 2140));
+at(300, mc('sql', SUPER, 1560));
+at(600, { type: 'query_started', hypothesisId: 'h-2', sql: S3, purpose: ev3.purpose });
 at(1000, { type: 'evidence', evidence: ev3 });
-at(500, { type: 'verdict', hypothesis: hv(1, 'inconclusive', ['ev-3']) });
-at(800, { type: 'query_started', hypothesisId: 'h-3', sql: S4, purpose: ev4.purpose });
+at(100, mk('h-2', 1, 760, 760));
+at(300, mc('verdict', NANO, 790));
+at(200, { type: 'verdict', hypothesis: hv(1, 'inconclusive', ['ev-3']) });
+at(50, mk('h-2', 2, 820, 1980));
+at(300, mc('sql', SUPER, 2040));
+at(500, { type: 'query_started', hypothesisId: 'h-3', sql: S4, purpose: ev4.purpose });
 at(1700, { type: 'evidence', evidence: ev4 });
-at(500, { type: 'verdict', hypothesis: hv(2, 'refuted', ['ev-1', 'ev-4']) });
+at(100, mk('h-3', 2, 900, 2760));
+at(300, mc('verdict', NANO, 940));
+at(200, { type: 'verdict', hypothesis: hv(2, 'refuted', ['ev-1', 'ev-4']) });
+at(50, mk('h-3', 3, 910, 4380));
 at(1200, { type: 'thinking', text: 'Critic pass: checking every number in each claim against its cited rows.' });
-at(1800, { type: 'answer', answer });
+at(900, mc('synthesis', SUPER, 5210));
+at(500, mc('critic', NANO, 1980));
+at(400, { type: 'answer', answer });
 at(700, { type: 'remembered', ids: ['mem-90', 'mem-91'] });
 at(300, { type: 'done', investigation: inv });
 writeFileSync(new URL('../src/mock/events.json', import.meta.url), JSON.stringify({ _MOCK: 'MOCK DATA. Hand-written sample, not a real recording. Numbers are illustrative.', events: T }, null, 1));

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { api, openStream, MOCK, type Health, type Summary } from './api';
-import { reducer, type View } from './state';
+import { reducer, type View, type WorldEntity } from './state';
 import { ContractBadge, HypothesisBoard, Recalled, Remembered } from './components/Panels';
 import { EvidenceStream } from './components/Evidence';
 import { AnswerPanel, EvidenceGraph } from './components/Answer';
 import { AuditDrawer } from './components/AuditDrawer';
+import { EntityDrawer, WorldPanel } from './components/World';
+import { PROVIDER, ProviderLog } from './components/Models';
 
 const SUGGESTED = [
   "Why did Target's revenue growth lag Walmart's from FY2022 to FY2024?",
@@ -29,6 +31,8 @@ export function App() {
   const [now, setNow] = useState(Date.now());
   const [askErr, setAskErr] = useState('');
   const [navOpen, setNavOpen] = useState(false);
+  const [entity, setEntity] = useState<WorldEntity | null>(null);
+  const [retrying, setRetrying] = useState(false);
   const closeStream = useRef<() => void>(() => undefined);
 
   useEffect(() => {
@@ -56,7 +60,12 @@ export function App() {
 
   const attach = (id: string) => {
     closeStream.current();
-    closeStream.current = openStream(id, e => dispatch({ kind: 'event', e }), m => dispatch({ kind: 'fail', message: m }));
+    // If the stream is lost for good, the stored investigation is the source of truth (it may well have finished meanwhile).
+    const lost = (m: string) => api.get(id).then(inv => {
+      if (inv.status === 'running') dispatch({ kind: 'fail', message: `${m} The investigation is still running on the server; reopen it from History to resume.` });
+      else dispatch({ kind: 'load', inv });
+    }).catch(() => dispatch({ kind: 'fail', message: m }));
+    closeStream.current = openStream(id, e => dispatch({ kind: 'event', e }), lost, setRetrying);
   };
 
   const ask = async (q: string) => {
@@ -79,18 +88,21 @@ export function App() {
     setNavOpen(false);
     try {
       const inv = await api.get(s.id);
-      dispatch({ kind: 'load', inv });
-      if (inv.status === 'running') { dispatch({ kind: 'reset', id: inv.id, question: inv.question }); attach(inv.id); }
+      if (MOCK) { dispatch({ kind: 'load', inv }); return; }
+      // The event stream replays everything so far (including model calls, entities and context meters), then continues live.
+      dispatch({ kind: 'reset', id: inv.id, question: inv.question });
+      attach(inv.id);
     } catch (e) {
       dispatch({ kind: 'reset', id: s.id, question: s.question });
       dispatch({ kind: 'fail', message: (e as Error).message });
     }
   };
 
-  const newQuestion = () => { closeStream.current(); dispatch({ kind: 'reset', id: '', question: '' }); setQuestion(''); setNavOpen(false); };
+  const newQuestion = () => { closeStream.current(); setRetrying(false); dispatch({ kind: 'reset', id: '', question: '' }); setQuestion(''); setNavOpen(false); };
   // `view.id === ''` is the ask screen.
   const onAsk = !view || view.id === '';
   const closeAudit = useCallback(() => setAuditId(null), []);
+  const closeEntity = useCallback(() => setEntity(null), []);
 
   return (
     <div className="shell">
@@ -117,7 +129,10 @@ export function App() {
             <li key={s.id}>
               <button type="button" className={`hist ${view?.id === s.id ? 'cur' : ''}`} onClick={() => openPast(s)} aria-current={view?.id === s.id}>
                 <span className={`sdot st-${s.status}`} aria-label={s.status} />
-                <span className="hq">{s.question}</span>
+                <span className="hq-wrap">
+                  <span className="hq">{s.question}</span>
+                  {s.claimCount ? <span className="hmeta small muted">{s.verifiedCount ?? 0}/{s.claimCount} claims verified, {s.evidenceCount ?? 0} queries</span> : null}
+                </span>
               </button>
             </li>
           ))}
@@ -129,17 +144,18 @@ export function App() {
         {onAsk ? (
           <AskScreen question={question} setQuestion={setQuestion} onAsk={ask} err={askErr} />
         ) : (
-          <Investigation view={view!} now={now} onAudit={setAuditId} />
+          <Investigation view={view!} now={now} onAudit={setAuditId} onEntity={setEntity} retrying={retrying} />
         )}
       </main>
 
       <footer className="powered" aria-label="Powered by">
         <span>Powered by</span>
         <b>Zetaris</b><span className="sep" aria-hidden="true">/</span>
-        <b>Meterless</b> <span className="muted">H-MEM, Scout Intent</span><span className="sep" aria-hidden="true">/</span>
+        <b>Meterless</b> <span className="muted">Scout Intent, World Model, H-MEM, Markovian, Nightshift</span><span className="sep" aria-hidden="true">/</span>
         <b>NVIDIA Nemotron</b>
       </footer>
       <AuditDrawer id={auditId} onClose={closeAudit} />
+      <EntityDrawer entity={entity} onClose={closeEntity} />
     </div>
   );
 }
@@ -191,33 +207,36 @@ function AskScreen({ question, setQuestion, onAsk, err }: { question: string; se
   );
 }
 
-function Investigation({ view, now, onAudit }: { view: View; now: number; onAudit: (id: string) => void }) {
+function Investigation({ view, now, onAudit, onEntity, retrying }: { view: View; now: number; onAudit: (id: string) => void; onEntity: (e: WorldEntity) => void; retrying: boolean }) {
   const running = view.status === 'running';
   const queries = view.feed.length;
-  // LLM calls are derived from the event stream (the server does not report a counter):
-  // intent + planning + one per query + one per verdict + critic/answer.
-  const llmCalls = 1 + (view.hypotheses.length ? 1 : 0) + queries + view.verdicts + (view.answer ? 1 : 0);
+  // Prefer the real count of model_call events; older runs without them fall back to an estimate from the stream.
+  const llmCalls = view.modelCalls.length || 1 + (view.hypotheses.length ? 1 : 0) + queries + view.verdicts + (view.answer ? 1 : 0);
   const seconds = Math.round(((view.finishedAt ?? now) - view.startedAt) / 1000);
   const blocked = view.status === 'blocked' || view.contract?.intent.risk === 'blocked';
+  const providers = [...new Set(view.modelCalls.map(c => PROVIDER[c.provider] ?? c.provider))].join(', ');
   return (
     <div className="inv">
       <div className="qhead">
         <h1>{view.question}</h1>
         <span className={`pill st-pill st-${view.status}`}>{running && <span className="dot" />}{view.status === 'done' ? 'complete' : view.status}</span>
       </div>
+      {retrying && running && <div className="banner warn" role="status">Connection interrupted. Reconnecting and resuming from the last event…</div>}
       {blocked && (
         <div className="banner bad" role="alert"><strong>Blocked by Scout Intent.</strong> {view.contract?.intent.riskReasons.join('; ') || 'This request is not allowed.'}</div>
       )}
       {view.error && <div className="banner bad" role="alert"><strong>Investigation failed.</strong> {view.error}</div>}
       <div className="cols">
         <div className="colmain">
-          <HypothesisBoard hypotheses={view.hypotheses} active={running} />
-          {view.answer && <AnswerPanel answer={view.answer} />}
+          <WorldPanel world={view.world} onOpen={onEntity} />
+          <HypothesisBoard hypotheses={view.hypotheses} active={running} markov={view.markov} />
+          {view.answer && <AnswerPanel answer={view.answer} via={providers} />}
           {view.answer && view.answer.claims.length > 0 && <EvidenceGraph claims={view.answer.claims} evidence={view.feed.flatMap(f => (f.evidence ? [f.evidence] : []))} />}
           <EvidenceStream feed={view.feed} thinking={view.thinking} running={running} />
         </div>
-        <aside className="colside" aria-label="Contract and memory">
+        <aside className="colside" aria-label="Contract, models and memory">
           <ContractBadge contract={view.contract} queries={queries} llmCalls={llmCalls} seconds={seconds} live={running} />
+          <ProviderLog calls={view.modelCalls} mock={MOCK} live={running} />
           <Recalled hits={view.recalled} onAudit={onAudit} />
           <Remembered ids={view.remembered} onAudit={onAudit} />
         </aside>

@@ -11,6 +11,11 @@ export type FeedItem = {
   evidence?: Evidence;
 };
 
+export type ModelCall = Extract<InvestigationEvent, { type: 'model_call' }>;
+export type WorldEvent = Extract<InvestigationEvent, { type: 'world' }>;
+export type WorldEntity = WorldEvent['entities'][number];
+export interface MarkovStep { step: number; bounded: number; naive: number }
+
 export interface View {
   id: string;
   question: string;
@@ -20,6 +25,9 @@ export interface View {
   feed: FeedItem[];
   thinking: string[];
   answer?: Investigation['answer'];
+  modelCalls: ModelCall[];
+  world?: { entities: WorldEntity[]; unknown: string[] };
+  markov: Record<string, MarkovStep[]>;
   remembered: string[];
   verdicts: number;
   status: Investigation['status'];
@@ -35,7 +43,7 @@ export type Action =
   | { kind: 'fail'; message: string };
 
 export const emptyView = (id: string, question: string): View => ({
-  id, question, recalled: [], hypotheses: [], feed: [], thinking: [], remembered: [], verdicts: 0,
+  id, question, recalled: [], hypotheses: [], feed: [], thinking: [], modelCalls: [], markov: {}, remembered: [], verdicts: 0,
   status: 'running', startedAt: Date.now(),
 });
 
@@ -49,7 +57,7 @@ export function fromInvestigation(inv: Investigation): View {
       key: ev.id, hypothesisId: ev.hypothesisId, sql: ev.result.sql, purpose: ev.purpose,
       state: 'done' as const, attempt: 1, evidence: ev,
     })),
-    thinking: [], answer: inv.answer, remembered: inv.rememberedIds, verdicts: inv.hypotheses.length,
+    thinking: [], modelCalls: [], markov: {}, answer: inv.answer, remembered: inv.rememberedIds, verdicts: inv.hypotheses.length,
     status: inv.status, error: inv.error, startedAt: Date.parse(inv.startedAt) || Date.now(),
     finishedAt: inv.finishedAt ? Date.parse(inv.finishedAt) : undefined,
   };
@@ -61,7 +69,10 @@ function mergeDone(s: View, inv: Investigation): View {
   const feed = s.feed.length
     ? s.feed.map(f => (f.state === 'running' ? { ...f, state: 'failed' as const, error: 'No result received' } : f))
     : v.feed;
-  return { ...v, feed, thinking: s.thinking, startedAt: s.startedAt, finishedAt: Date.now() };
+  return {
+    ...v, feed, thinking: s.thinking, modelCalls: s.modelCalls, world: s.world, markov: s.markov,
+    startedAt: Date.parse(inv.startedAt) || s.startedAt, finishedAt: (inv.finishedAt ? Date.parse(inv.finishedAt) : NaN) || Date.now(),
+  };
 }
 
 const lastRunning = (feed: FeedItem[], hypothesisId: string) =>
@@ -105,6 +116,13 @@ export function reducer(s: View | null, a: Action): View | null {
         purpose: e.evidence.purpose, state: 'done', attempt: idx >= 0 ? s.feed[idx].attempt : 1, evidence: e.evidence,
       };
       return { ...s, feed: idx >= 0 ? s.feed.map((f, i) => (i === idx ? item : f)) : [...s.feed, item] };
+    }
+    case 'model_call': return { ...s, modelCalls: [...s.modelCalls, e] };
+    case 'world': return { ...s, world: { entities: e.entities, unknown: e.unknown } };
+    case 'markov': {
+      const prev = (s.markov[e.hypothesisId] ?? []).filter(m => m.step !== e.step);
+      const next = [...prev, { step: e.step, bounded: e.tokensBounded, naive: e.tokensNaive }].sort((a, b) => a.step - b.step);
+      return { ...s, markov: { ...s.markov, [e.hypothesisId]: next } };
     }
     case 'answer': return { ...s, answer: e.answer };
     case 'remembered': return { ...s, remembered: e.ids };
