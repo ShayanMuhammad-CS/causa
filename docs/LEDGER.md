@@ -86,7 +86,7 @@ All of them support tools. OpenRouter is a built-in Nightshift provider.
 - F 158.06B
 - TGT operating margin 3.53%
 
-**HackOS submission is a DRAFT, not submitted.** "1/3 submissions created", and the roster is locked.
+**HackOS submission is SUBMITTED** (2026-10-24, about 21:45 local). Status "Submitted" was verified after a page reload. Fields: Track 02, team MARS, description, video v1 uploaded to HackOS (2:13, sample mode, honestly labelled), the GitHub URL and the deck PDF. Previously it was a DRAFT, not submitted. "1/3 submissions created", and the roster is locked.
 - Filled: Track 02 *The Agent That Can Explain Why*, description (1391 chars), the GitHub URL, the deck PDF URL.
 - **Missing: the Video field (required).**
 
