@@ -1,0 +1,29 @@
+{
+  "project": "Causa",
+  "tagline": "An analyst agent that answers why-questions about company performance with evidence-backed, critic-verified claims.",
+  "track": "The Agent That Can Explain Why",
+  "team": "MARS",
+  "sponsors": {
+    "zetaris": {
+      "role": "Data layer: every query the agent runs goes through Zetaris Lightning SQL over REST (POST /sql-editor/sqls/run), across federated REST sources (SEC EDGAR XBRL, company_dns SIC, World Bank) and the sic_edgar_usl Unified Semantic Layer.",
+      "code": ["server/src/zetaris/", "data/"]
+    },
+    "meterless": {
+      "nightshift": "Primary AI provider: OpenAI-compatible Meterless Runtime (Bearer token, meterless-app/meterless-scope headers, /v1/models discovery); the model that handled each call is recorded and shown.",
+      "engines": {
+        "h-mem": "Persistent memory of verified findings with provenance (derivedFrom evidence + Zetaris query ids), recall before investigating, trust-ledger audit, feedback.",
+        "world-model": "Grounds companies to real CIK/ticker/SIC before investigating; unknown names are refused instead of invented; metric observations keep provenance.",
+        "markovian": "Bounded carried context per reasoning step inside each hypothesis loop (flat cost per step), with bounded-vs-naive token figures shown in the UI.",
+        "scout-intent": "Intent detection, risk check (blocks write/DDL/exfiltration), tool routing and an HMAC-signed execution contract whose tools and budgets are enforced in code."
+      },
+      "code": ["server/src/llm/meterless.ts", "server/src/memory/", "server/src/world/", "server/src/markov/", "server/src/intent/", "server/vendor/"]
+    },
+    "nvidia": {
+      "role": "NVIDIA Nemotron models, served through Meterless Nightshift, act as planner, SQL investigator and critic; the handling model id is recorded for every call.",
+      "code": ["server/src/agent/", "server/src/llm/"]
+    },
+    "cursor": {
+      "role": "Not used; the project was built with Claude Code (Cursor is optional per the 22 Oct organiser update)."
+    }
+  }
+}
