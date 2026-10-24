@@ -1,0 +1,333 @@
+{
+ "fetchedAt": "2026-10-24T14:49:55.402Z",
+ "secUserAgent": "Causa-hackathon causa.demo@example.com",
+ "endpoints": {
+  "secFacts": "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json",
+  "secSubmissions": "https://data.sec.gov/submissions/CIK{cik}.json",
+  "sicV4": "https://company-dns.mediumroast.io/V4.0/na/sic/code/%25",
+  "worldBank": "https://api.worldbank.org/v2/country/USA/indicator/{indicator}?format=json&date=2015:2025&per_page=100"
+ },
+ "companies": [
+  {
+   "ticker": "WMT",
+   "slug": "walmart",
+   "cik": "0000104169",
+   "name": "Walmart Inc.",
+   "sector": "retail"
+  },
+  {
+   "ticker": "TGT",
+   "slug": "target",
+   "cik": "0000027419",
+   "name": "Target Corp",
+   "sector": "retail"
+  },
+  {
+   "ticker": "COST",
+   "slug": "costco",
+   "cik": "0000909832",
+   "name": "Costco Wholesale Corp",
+   "sector": "retail"
+  },
+  {
+   "ticker": "KR",
+   "slug": "kroger",
+   "cik": "0000056873",
+   "name": "Kroger Co",
+   "sector": "retail"
+  },
+  {
+   "ticker": "DG",
+   "slug": "dollar_general",
+   "cik": "0000029534",
+   "name": "Dollar General Corp",
+   "sector": "retail"
+  },
+  {
+   "ticker": "BBY",
+   "slug": "best_buy",
+   "cik": "0000764478",
+   "name": "Best Buy Co., Inc.",
+   "sector": "retail"
+  },
+  {
+   "ticker": "F",
+   "slug": "ford",
+   "cik": "0000037996",
+   "name": "Ford Motor Co",
+   "sector": "auto"
+  },
+  {
+   "ticker": "GM",
+   "slug": "gm",
+   "cik": "0001467858",
+   "name": "General Motors Co",
+   "sector": "auto"
+  },
+  {
+   "ticker": "TSLA",
+   "slug": "tesla",
+   "cik": "0001318605",
+   "name": "Tesla, Inc.",
+   "sector": "auto"
+  }
+ ],
+ "availableTags": {
+  "WMT": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "CostOfRevenue",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "TGT": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "COST": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "KR": [
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "NetIncomeLoss",
+   "CostOfRevenue",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "DG": [
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "BBY": [
+   "Revenues",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "F": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "GM": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "SalesRevenueNet",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfGoodsAndServicesSold",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ],
+  "TSLA": [
+   "Revenues",
+   "RevenueFromContractWithCustomerExcludingAssessedTax",
+   "NetIncomeLoss",
+   "GrossProfit",
+   "CostOfRevenue",
+   "InventoryNet",
+   "OperatingIncomeLoss"
+  ]
+ },
+ "tagsUsed": {
+  "WMT": {
+   "revenue": [
+    "Revenues"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "cost_of_revenue": [
+    "CostOfRevenue"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "TGT": {
+   "revenue": [
+    "Revenues",
+    "SalesRevenueNet",
+    "RevenueFromContractWithCustomerExcludingAssessedTax"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "gross_profit": [
+    "GrossProfit"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "COST": {
+   "revenue": [
+    "Revenues",
+    "RevenueFromContractWithCustomerExcludingAssessedTax"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "KR": {
+   "revenue": [
+    "RevenueFromContractWithCustomerExcludingAssessedTax"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "cost_of_revenue": [
+    "CostOfRevenue"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "DG": {
+   "revenue": [
+    "RevenueFromContractWithCustomerExcludingAssessedTax"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "gross_profit": [
+    "GrossProfit"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "BBY": {
+   "revenue": [
+    "SalesRevenueNet",
+    "Revenues"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "gross_profit": [
+    "GrossProfit"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "F": {
+   "revenue": [
+    "Revenues",
+    "RevenueFromContractWithCustomerExcludingAssessedTax"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "GM": {
+   "revenue": [
+    "Revenues"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "cost_of_revenue": [
+    "CostOfGoodsAndServicesSold"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  },
+  "TSLA": {
+   "revenue": [
+    "Revenues"
+   ],
+   "net_income": [
+    "NetIncomeLoss"
+   ],
+   "gross_profit": [
+    "GrossProfit"
+   ],
+   "cost_of_revenue": [
+    "CostOfRevenue"
+   ],
+   "inventory": [
+    "InventoryNet"
+   ],
+   "operating_income": [
+    "OperatingIncomeLoss"
+   ]
+  }
+ },
+ "counts": {
+  "company_financials": 748,
+  "company_profile": 9,
+  "sic_codes_v4_table": 1005,
+  "us_macro_indicators": 33
+ }
+}

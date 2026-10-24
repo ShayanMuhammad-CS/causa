@@ -1,0 +1,233 @@
+[
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2015,
+  "value": 0.11862713555245
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2016,
+  "value": 1.26158320570535
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2017,
+  "value": 2.13011000365961
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2018,
+  "value": 2.44258329692816
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2019,
+  "value": 1.8122100752602
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2020,
+  "value": 1.23358439630629
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2021,
+  "value": 4.69785886363742
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2022,
+  "value": 8.00279982052121
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2023,
+  "value": 4.11633838374487
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2024,
+  "value": 2.94952520485207
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "FP.CPI.TOTL.ZG",
+  "indicator_name": "Inflation, consumer prices (annual %)",
+  "year": 2025,
+  "value": null
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2015,
+  "value": 3.37254996677918
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2016,
+  "value": 2.4545310452138
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2017,
+  "value": 2.63814721961811
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2018,
+  "value": 2.74102213081449
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2019,
+  "value": 2.14726920954416
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2020,
+  "value": -2.51842307487952
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2021,
+  "value": 8.79301544273407
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2022,
+  "value": 3.0041506406512
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2023,
+  "value": 2.5658436220795
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2024,
+  "value": 2.94812300041445
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NE.CON.PRVT.KD.ZG",
+  "indicator_name": "Households and NPISHs Final consumption expenditure (annual % growth)",
+  "year": 2025,
+  "value": null
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2015,
+  "value": 2.94555045227337
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2016,
+  "value": 1.81945147909089
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2017,
+  "value": 2.45762230126449
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2018,
+  "value": 2.96650506701943
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2019,
+  "value": 2.58382533052225
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2020,
+  "value": -2.081375977796
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2021,
+  "value": 6.15202247867526
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2022,
+  "value": 2.52421385073222
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2023,
+  "value": 2.93436322440155
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2024,
+  "value": 2.79318715363841
+ },
+ {
+  "country_code": "USA",
+  "indicator_id": "NY.GDP.MKTP.KD.ZG",
+  "indicator_name": "GDP growth (annual %)",
+  "year": 2025,
+  "value": 2.16138195623856
+ }
+]

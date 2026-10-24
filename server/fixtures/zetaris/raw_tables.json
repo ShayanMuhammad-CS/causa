@@ -1,0 +1,332 @@
+[
+ {
+  "db": "COMPANY_DNS",
+  "table": "sic_codes_v4_raw",
+  "endpoint": "https://company-dns.mediumroast.io/V4.0/na/sic/code/%25"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_cost_of_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/CostOfRevenue.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_sales_revenue_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/SalesRevenueNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_rfc_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_gross_profit_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/GrossProfit.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000027419/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_rfc_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "kroger_rfc_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000056873/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "kroger_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000056873/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "kroger_cost_of_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000056873/us-gaap/CostOfRevenue.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "kroger_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000056873/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_rfc_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_gross_profit_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/GrossProfit.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000029534/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_sales_revenue_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/SalesRevenueNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_gross_profit_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/GrossProfit.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000764478/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_rfc_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000037996/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001467858/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001467858/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_cogs_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001467858/us-gaap/CostOfGoodsAndServicesSold.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001467858/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001467858/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_revenues_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_net_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/NetIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_gross_profit_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/GrossProfit.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_cost_of_revenue_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/CostOfRevenue.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_inventory_net_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/InventoryNet.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_operating_income_facts",
+  "endpoint": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/OperatingIncomeLoss.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "walmart_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000104169.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "target_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000027419.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "costco_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000909832.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "kroger_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000056873.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "dollar_general_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000029534.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "best_buy_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000764478.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "ford_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0000037996.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "gm_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0001467858.json"
+ },
+ {
+  "db": "SEC_DATA",
+  "table": "tesla_submissions_raw",
+  "endpoint": "https://data.sec.gov/submissions/CIK0001318605.json"
+ },
+ {
+  "db": "WORLDBANK_REST",
+  "table": "wb_fp_cpi_totl_zg_usa",
+  "endpoint": "https://api.worldbank.org/v2/country/USA/indicator/FP.CPI.TOTL.ZG?format=json&date=2015:2025&per_page=100"
+ },
+ {
+  "db": "WORLDBANK_REST",
+  "table": "wb_ne_con_prvt_kd_zg_usa",
+  "endpoint": "https://api.worldbank.org/v2/country/USA/indicator/NE.CON.PRVT.KD.ZG?format=json&date=2015:2025&per_page=100"
+ },
+ {
+  "db": "WORLDBANK_REST",
+  "table": "wb_ny_gdp_mktp_kd_zg_usa",
+  "endpoint": "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.KD.ZG?format=json&date=2015:2025&per_page=100"
+ }
+]

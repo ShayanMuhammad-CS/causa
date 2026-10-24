@@ -1,0 +1,34 @@
+country_code,indicator_id,indicator_name,year,value
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2015,0.11862713555245
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2016,1.26158320570535
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2017,2.13011000365961
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2018,2.44258329692816
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2019,1.8122100752602
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2020,1.23358439630629
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2021,4.69785886363742
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2022,8.00279982052121
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2023,4.11633838374487
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2024,2.94952520485207
+USA,FP.CPI.TOTL.ZG,"Inflation, consumer prices (annual %)",2025,
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2015,3.37254996677918
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2016,2.4545310452138
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2017,2.63814721961811
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2018,2.74102213081449
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2019,2.14726920954416
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2020,-2.51842307487952
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2021,8.79301544273407
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2022,3.0041506406512
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2023,2.5658436220795
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2024,2.94812300041445
+USA,NE.CON.PRVT.KD.ZG,Households and NPISHs Final consumption expenditure (annual % growth),2025,
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2015,2.94555045227337
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2016,1.81945147909089
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2017,2.45762230126449
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2018,2.96650506701943
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2019,2.58382533052225
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2020,-2.081375977796
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2021,6.15202247867526
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2022,2.52421385073222
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2023,2.93436322440155
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2024,2.79318715363841
+USA,NY.GDP.MKTP.KD.ZG,GDP growth (annual %),2025,2.16138195623856
