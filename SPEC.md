@@ -91,6 +91,20 @@ data/  Lightning SQL onboarding scripts for our sources (run once against the in
 ```
 The shared contract is in `server/src/types.ts`. Modules talk only through those types.
 
+## HTTP API (server ↔ web)
+The server listens on `PORT`, default 8700. All payloads use the types in `server/src/types.ts`.
+
+| Method | Path | Body or reply |
+|---|---|---|
+| POST | `/api/investigations` | Body `{ question }`. Replies `{ id }` and starts the run. |
+| GET | `/api/investigations/:id/events` | SSE stream. Each `InvestigationEvent` is sent with event name = `type` and data = JSON. Already-emitted events are replayed on connect. The stream ends after `done` or `error`. |
+| GET | `/api/investigations/:id` | Replies with the `Investigation`. |
+| GET | `/api/investigations` | Replies with a summary list of past investigations. |
+| GET | `/api/memory/:id/audit` | Replies with the audit entries. |
+| POST | `/api/memory/:id/feedback` | Body `{ verdict: 'helpful' \| 'unhelpful' }`. |
+| GET | `/api/health` | Replies `{ zetaris, llm, memory }`, each `{ ok, detail }`. |
+| GET | `/api/catalog` | Replies with `CatalogTable[]`. |
+
 ## Engineering rules
 - TypeScript strict mode.
 - Tests with vitest. Each module ships unit tests, and a test only counts if it was seen failing first.

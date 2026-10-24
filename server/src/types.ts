@@ -66,6 +66,19 @@ export interface ExecutionContract {
   issuedAt: string;
 }
 
+export interface IntentEngine {
+  analyze(question: string): Promise<IntentRecord>;
+  issueContract(intent: IntentRecord): ExecutionContract;
+  verifyContract(contract: ExecutionContract): boolean;
+}
+
+// ---------- Module factories (each module's index.ts exports exactly this) ----------
+// src/zetaris/index.ts : export function createZetarisClient(env: NodeJS.ProcessEnv): ZetarisClient
+// src/llm/index.ts     : export function createLLM(env: NodeJS.ProcessEnv): LLM
+// src/memory/index.ts  : export async function createMemoryService(env: NodeJS.ProcessEnv): Promise<MemoryService>
+// src/intent/index.ts  : export function createIntentEngine(deps: { llm: LLM; secret: string }): IntentEngine
+// When env.CAUSA_FAKE === '1' each factory returns its offline/fixture implementation.
+
 // ---------- Meterless: H-MEM ----------
 export interface MemoryHit {
   id: string;
