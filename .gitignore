@@ -9,3 +9,5 @@ coverage/
 server/.world/
 server/.markov/
 server/.data/
+docs/video/raw*
+docs/video/*.webm

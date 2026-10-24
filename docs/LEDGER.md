@@ -73,6 +73,54 @@ All of them support tools. OpenRouter is a built-in Nightshift provider.
 - **Zetaris query endpoint shape and Lightning SQL dialect details.** Confirm against the live instance and its OpenAPI spec.
 - **The Mars team's tasks, name and members.** Confirm by reading the board after the user signs in.
 
+## CHECKPOINT: 2026-10-24 ~20:45 local (15:45 UTC)
+
+### Done and verified
+**Repo: github.com/ShayanMuhammad-CS/causa, PUBLIC.** An anonymous HTTP check returned 200.
+- Last pushed commit: the deck commit after 2aa68d2.
+- `tsc` is clean and 305/305 tests pass on the controller's own run.
+
+**3 real sample investigations** are in `docs/samples` (Target/Walmart, Ford, Dollar General). Every claim is critic-verified. Numbers were spot-checked against public filings:
+- WMT 611.3B → 648.1B
+- TGT 109.12B
+- F 158.06B
+- TGT operating margin 3.53%
+
+**HackOS submission is a DRAFT, not submitted.** "1/3 submissions created", and the roster is locked.
+- Filled: Track 02 *The Agent That Can Explain Why*, description (1391 chars), the GitHub URL, the deck PDF URL.
+- **Missing: the Video field (required).**
+
+**Deck:** `docs/deck/Causa-deck.pptx` and `.pdf`, 11 slides. Slides 8 and 9 still show MOCK screenshots and must be replaced with real-run screenshots.
+
+**Nightshift 1.2.3 is running.** Restarted with `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9334`, so the UI is drivable via `tools/ns-key.js`.
+- No provider and no lane yet.
+- The local fleet "Transfer Scout" (Llama 3.2 3B, ~2 GB) is downloading slowly: ~350 MB at 20:28.
+- Background watcher: `bpem36o7g`.
+
+**Zetaris local bundle**, in `B:\open-agent-hackathon\zetaris\zetaris-platform`:
+- Registry `docker login` succeeded.
+- `.env` admin password was replaced; it is in `zetaris/admin.pass.private`. The org is `mars`.
+- Preflight passed with 1 warning (7 GB of memory available to Docker).
+- `docker compose pull` + `up -d` were running in background task `byqryqwv9`, started 20:26.
+
+### Next steps (in order)
+1. **Video v1.** Convert `docs/video/raw.webm` to `docs/video/causa-demo-v1.mp4` with `ffmpeg -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart`.
+   - Check that ffprobe reports ≤ 4:00.
+   - Look at ~8 frames: is the Recalled panel empty on Q1? Do the markov meter and the audit drawer show?
+   - Then upload it to the HackOS draft (Video → Upload File) and press **Submit**, which the user authorised.
+   - Delete `docs/video/raw*` before committing; commit `web/scripts/record-demo.cjs`.
+2. **Zetaris.** Once `docker compose ps` is healthy, run `./verify.sh`.
+   - Log in to the UI at localhost:3000 (admin@zetaris.com / admin.pass.private).
+   - Create an API key and read the org ID; put them in `server/.env.local`.
+   - Run `data/run-onboarding.ts --apply`. Then check that the agent's SQL works on the real Lightning dialect (column names, `SHOW` / `DESCRIBE` layouts are unverified).
+3. **Nightshift.** When Llama 3.2 3B is installed, activate the lane, send a test chat through `:8088`, and run Causa live with `SAMPLE_MODE=false`.
+4. **Nemotron.** Needs either the user signing in to OpenRouter (key into Nightshift → OpenRouter) or NVIDIA verification via a DM to Matt Cool (draft in chat).
+5. **Video v2** with live Zetaris + Nightshift. Replace the deck screenshots with real ones. Do a final Opus review (security: SQL guard, secrets). Then update the submission. Deadline: 27 Oct 23:45 UTC.
+
+### Known issues
+- The analyst's sector-wide rule only compares growth with peers, so "Costco slowdown" is marked sector-wide even though Costco's growth rose.
+- The Meterless `/v1/models` route list includes local models that are not installed.
+
 ## Status
 | Track | Owner | State |
 |---|---|---|
