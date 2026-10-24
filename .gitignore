@@ -6,3 +6,6 @@ dist/
 server/.hmem/
 .notebook/
 coverage/
+server/.world/
+server/.markov/
+server/.data/
