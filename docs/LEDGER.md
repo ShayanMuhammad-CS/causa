@@ -1,0 +1,72 @@
+# Causa build ledger
+
+This is the controller's source of truth. A fact goes under **Verified** only with the command or source that proved it. Everything else stays **Unverified** until checked.
+
+## Deadline
+Submissions close **2026-10-27 23:45 UTC**. The event page "Key dates" were read on 2026-10-24.
+
+## Verified
+
+**Rules and scoring.** Source: the event page HTML, fetched 2026-10-24 14:19 UTC (`scratchpad/hk/strings.txt`).
+- "Every submission must integrate Zetaris and Meterless."
+- Scoring: Impact 30, Technical 20, Innovation 15, Demo 15, Product & UX 10, Sponsor tech 10.
+
+**Submission requirements**, from the same source:
+- a 1-4 minute demo video;
+- a slide deck;
+- a GitHub repo with a README;
+- an explanation of the Zetaris and Meterless integration, Cursor use (if any) and where NVIDIA tech contributes.
+
+**Meterless runtime provider contract.** Source: `Meterless/docs/agent-ready/add-meterless-provider.md`, fetched with WebFetch.
+- Base URL `http://127.0.0.1:8088/v1`.
+- Headers: a bearer token, plus `meterless-app` and `meterless-scope`.
+
+**Meterless hackathon rubric.** Source: `docs/community/hackathon-guide.md`.
+- It weights "Meterless engine usage" at 25%.
+- The starter template uses the real H-MEM services.
+
+**Zetaris local install.** Source: `vendor/zetaris-getting-started/docs/install/updated_zetaris_installation_guide.md`.
+- Needs Docker with at least 6 GB.
+- The bundle comes from Zetaris Cloud.
+- Images come from the registry `zetarishackathon.azurecr.io`.
+
+**Zetaris REST.** Source: `docs/connections/client-setup.md`.
+- Base `/api/v1.0`.
+- Bearer API key, numeric org ID, UUID `X-Request-ID`.
+
+**Machine.** Checked with PowerShell CIM and `docker info`.
+- Ryzen 5 7430U, 15.4 GB RAM, AMD integrated GPU only.
+- Docker 29.8.2 with 8.0 GB and 12 CPUs available.
+- Java is not installed, so we use REST and not JDBC.
+
+**Repo hygiene.**
+- `server/.env.local` is gitignored (checked with `git check-ignore`).
+- GitHub CLI is logged in as ShayanMuhammad-CS (`gh auth status`).
+
+## Unverified (must be checked before we rely on it)
+- **NVIDIA model IDs.** The subagent read `nvidia/nemotron-3-super-120b-a12b` and `nvidia/nemotron-3.5-embed-1b` from `/v1/models` through a summarizing tool. To confirm: a live call with a key.
+- **Free NIM rate limits.** Measure them.
+- **Meterless Nightshift on Windows.** The README says it needs a "dedicated GPU", and this PC has none. Assumed unavailable; we use the open engines instead.
+- **Zetaris query endpoint shape and Lightning SQL dialect details.** Confirm against the live instance and its OpenAPI spec.
+- **The Mars team's tasks, name and members.** Confirm by reading the board after the user signs in.
+
+## Status
+| Track | Owner | State |
+|---|---|---|
+| Spec, types, scaffold | controller | done (commits f3fc00e, 7a31f34) |
+| Zetaris data layer + onboarding | dev A (Sonnet) | in progress |
+| Meterless H-MEM + Scout Intent | dev B (Sonnet) | in progress |
+| Agent loop, Nemotron, API | dev C (Opus) | in progress |
+| Web UI | dev D (Sonnet) | in progress |
+| Zetaris instance | user registers, then controller installs | waiting on user |
+| NVIDIA key | user | waiting on user |
+| Board / team info | user sign-in, then script | waiting on user |
+| Integration, live recording, Opus review | controller | next |
+| README, deck, video script, submission | controller + user | after integration |
+
+## Acceptance gates (none skipped)
+1. `npx tsc --noEmit` and `npx vitest run` exit 0. Each is run on its own and its exit status checked (lesson G14).
+2. A live end-to-end run against **real Zetaris and real Nemotron**. Its events are recorded and the numbers are spot-checked against SEC EDGAR by hand.
+3. An Opus review of the full diff, with security focus on the read-only SQL guard and secret handling.
+4. A fresh clone plus the README steps works on this machine.
+5. The demo video shows only real runs. Mock data is never presented as real.
