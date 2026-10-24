@@ -43,6 +43,29 @@ Submissions close **2026-10-27 23:45 UTC**. The event page "Key dates" were read
 - `server/.env.local` is gitignored (checked with `git check-ignore`).
 - GitHub CLI is logged in as ShayanMuhammad-CS (`gh auth status`).
 
+**Official requirement**, quoted from the Submission Requirements in the HackOS Resources:
+- "Meterless … must implement at least one Meterless Engine … in a working feature, and use Meterless Nightshift as its primary AI provider".
+- The NVIDIA key goes in Nightshift Providers, not in the app.
+
+**Nightshift 1.2.3 installed (2026-10-24).** The runtime is on 127.0.0.1:8088.
+- `/healthz` returns 200.
+- `/v1/models` returns 401 without a token and 69 ids with the token from `%LOCALAPPDATA%\ai.meterless.runtime\proxy-token`.
+- The backend is Vulkan (integrated Radeon).
+- The local fleet "Transfer Scout" (Llama 3.2 3B and others) was downloading at 20:25 local time.
+
+**NVIDIA API key is blocked.** build.nvidia.com requires phone verification, and Pakistan is not in its country list (screenshot `tools/nv-otp.png`). The official route, per the Help NVIDIA channel, is a DM to Matt Cool. NVIDIA is NOT required; it only matters for the Nemotron award.
+
+**OpenRouter serves Nemotron**, from the public `/api/v1/models`:
+- `nvidia/nemotron-3.5-lightning(:free)`
+- `nvidia/nemotron-3-ultra-550b-a55b(:free)`
+- `nvidia/nemotron-3-super-120b-a12b(:free)`
+
+All of them support tools. OpenRouter is a built-in Nightshift provider.
+
+**Repo.** github.com/ShayanMuhammad-CS/causa, currently PRIVATE. The user must flip it to public; the safety classifier blocks Claude from creating public surfaces.
+
+**Safety classifier blocks.** Claude may not create accounts in the user's name or publish anything. The user does those steps.
+
 ## Unverified (must be checked before we rely on it)
 - **NVIDIA model IDs.** The subagent read `nvidia/nemotron-3-super-120b-a12b` and `nvidia/nemotron-3.5-embed-1b` from `/v1/models` through a summarizing tool. To confirm: a live call with a key.
 - **Free NIM rate limits.** Measure them.
